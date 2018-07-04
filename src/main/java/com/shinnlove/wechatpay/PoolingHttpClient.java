@@ -5,9 +5,12 @@
 package com.shinnlove.wechatpay;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -28,6 +31,7 @@ import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.http.util.EntityUtils;
 
 /**
  * 带有连接池的自定义HttpClient。
@@ -36,6 +40,9 @@ import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
  * @version $Id: PoolingHttpClient.java, v 0.1 2018-07-04 上午11:31 shinnlove.jinsheng Exp $$
  */
 public class PoolingHttpClient {
+
+    /** 模拟MacOSX的Chrome请求头 */
+    private static final String               USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36";
 
     /** http池化连接 */
     static PoolingHttpClientConnectionManager manager    = null;
@@ -121,6 +128,20 @@ public class PoolingHttpClient {
 
     public static void main(String[] args) {
         CloseableHttpClient httpClient = getHttpClient();
+
+        HttpGet get = new HttpGet("http://www.sina.com.cn/");
+        // 用户代理
+        get.setHeader("User-Agent", USER_AGENT);
+
+        try {
+            //执行请求
+            HttpResponse response = httpClient.execute(get);
+            String str = EntityUtils.toString(response.getEntity(), Charset.forName("UTF-8"));
+            System.out.println(str);
+            EntityUtils.consume(response.getEntity());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
