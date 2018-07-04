@@ -2,12 +2,13 @@
  * Alipay.com Inc.
  * Copyright (c) 2004-2018 All Rights Reserved.
  */
-package com.shinnlove.wechatpay;
+package com.shinnlove.wechatpay.http.diy;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -33,6 +34,9 @@ import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.http.util.EntityUtils;
 
+import com.shinnlove.wechatpay.http.consts.DefaultHeaders;
+import com.shinnlove.wechatpay.http.header.RequestHeaderBuilder;
+
 /**
  * 带有连接池的自定义HttpClient。
  *
@@ -41,8 +45,8 @@ import org.apache.http.util.EntityUtils;
  */
 public class PoolingHttpClient {
 
-    /** 模拟MacOSX的Chrome请求头 */
-    private static final String               USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36";
+    /** 默认字符集 */
+    private static final String               CHARSET    = "UTF-8";
 
     /** http池化连接 */
     static PoolingHttpClientConnectionManager manager    = null;
@@ -127,21 +131,31 @@ public class PoolingHttpClient {
     }
 
     public static void main(String[] args) {
+
         CloseableHttpClient httpClient = getHttpClient();
 
-        HttpGet get = new HttpGet("http://www.sina.com.cn/");
-        // 用户代理
-        get.setHeader("User-Agent", USER_AGENT);
+        HttpGet hGet = new HttpGet("http://www.sina.com.cn/");
+
+        // 设置请求头
+        Header[] headers = RequestHeaderBuilder.custom()
+        // Cookie
+            .cookie(DefaultHeaders.COOKIE)
+            // 请求来源
+            .referer(DefaultHeaders.REFERER)
+            // 用户代理
+            .userAgent(DefaultHeaders.USER_AGENT).build();
+
+        hGet.setHeaders(headers);
 
         try {
             //执行请求
-            HttpResponse response = httpClient.execute(get);
-            String str = EntityUtils.toString(response.getEntity(), Charset.forName("UTF-8"));
+            HttpResponse response = httpClient.execute(hGet);
+            String str = EntityUtils.toString(response.getEntity(), Charset.forName(CHARSET));
             System.out.println(str);
-            EntityUtils.consume(response.getEntity());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
 }
