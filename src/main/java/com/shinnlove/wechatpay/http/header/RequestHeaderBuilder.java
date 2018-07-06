@@ -40,6 +40,56 @@ public class RequestHeaderBuilder {
     }
 
     /**
+     * 可接受类型
+     *
+     * @param accept
+     * @return
+     */
+    public RequestHeaderBuilder accept(String accept) {
+        return addHeader(HttpRequestHeaderConst.ACCEPT, accept);
+    }
+
+    /**
+     * 可接受传输类型。
+     *
+     * @param acceptEncoding
+     * @return
+     */
+    public RequestHeaderBuilder acceptEncoding(String acceptEncoding) {
+        return addHeader(HttpRequestHeaderConst.ACCEPT_ENCODING, acceptEncoding);
+    }
+
+    /**
+     * 可接受的语言。
+     *
+     * @param acceptLanguage
+     * @return
+     */
+    public RequestHeaderBuilder acceptLanguage(String acceptLanguage) {
+        return addHeader(HttpRequestHeaderConst.ACCEPT_LANGUAGE, acceptLanguage);
+    }
+
+    /**
+     * 添加连接类型。
+     *
+     * @param connection
+     * @return
+     */
+    public RequestHeaderBuilder connection(String connection) {
+        return addHeader(HttpRequestHeaderConst.CONNECTION, connection);
+    }
+
+    /**
+     * 添加请求内容类型。
+     *
+     * @param contentType
+     * @return
+     */
+    public RequestHeaderBuilder contentType(String contentType) {
+        return addHeader(HttpRequestHeaderConst.CONTENT_TYPE, contentType);
+    }
+
+    /**
      * 添加请求referer。
      *
      * @param referer
@@ -57,6 +107,16 @@ public class RequestHeaderBuilder {
      */
     public RequestHeaderBuilder cookie(String cookie) {
         return addHeader(HttpRequestHeaderConst.COOKIE, cookie);
+    }
+
+    /**
+     * 添加主机。
+     *
+     * @param host
+     * @return
+     */
+    public RequestHeaderBuilder host(String host) {
+        return addHeader(HttpRequestHeaderConst.HOST, host);
     }
 
     /**

@@ -134,12 +134,25 @@ public class PoolingHttpClient {
 
         CloseableHttpClient httpClient = getHttpClient();
 
-        HttpGet hGet = new HttpGet("http://www.sina.com.cn/");
+        HttpGet hGet = new HttpGet(
+            "http://instasset-zth-2.gz00b.dev.alipay.net/resultcode/query.json?_input_charset=UTF-8&ctoken=bK1E6Uba3BGcrNb-");
 
         // 设置请求头
         Header[] headers = RequestHeaderBuilder.custom()
-        // Cookie
+        // accept
+            .accept(DefaultHeaders.ACCEPT)
+            // 可接受编码集
+            .acceptEncoding(DefaultHeaders.ACCEPT_ENCODING)
+            // 可接受语言
+            .acceptLanguage(DefaultHeaders.ACCEPT_LANGUAGE)
+            // 添加连接类型
+            .connection(DefaultHeaders.KEEP_ALIVE)
+            // 增加content-type
+            .contentType(DefaultHeaders.CONTENT_TYPE)
+            // Cookie
             .cookie(DefaultHeaders.COOKIE)
+            // 增加主机地址
+            .host(DefaultHeaders.HOST)
             // 请求来源
             .referer(DefaultHeaders.REFERER)
             // 用户代理
