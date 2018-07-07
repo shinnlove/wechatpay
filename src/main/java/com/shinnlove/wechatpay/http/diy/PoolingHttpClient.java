@@ -58,9 +58,13 @@ public class PoolingHttpClient {
         // 懒初始化
         if (httpClient == null) {
 
+            // 如果https使用自己的证书，可以初始化`KeyStore`、`KeyManager`、`SSLContext`
+            // 这里使用默认的`SSLConnectionSocketFactory.getSystemSocketFactory()`来创建
+
             // 注册访问协议相关的SocketFactory，支持http/https
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
                 .<ConnectionSocketFactory> create()
+                // `PlainConnectionSocketFactory`是默认的创建、初始化明文socket（不加密）的工厂类
                 .register("http", PlainConnectionSocketFactory.INSTANCE)
                 .register("https", SSLConnectionSocketFactory.getSystemSocketFactory()).build();
 
@@ -112,7 +116,7 @@ public class PoolingHttpClient {
                 .setDefaultRequestConfig(defaultRequestConfig)
                 // 连接重用策略
                 .setConnectionReuseStrategy(DefaultConnectionReuseStrategy.INSTANCE)
-                // 长连接配置，长连接生存时间
+                // 长连接配置，长连接生存时间(这里使用默认，可以自己实现接口`ConnectionKeepAliveStrategy`)
                 .setKeepAliveStrategy(DefaultConnectionKeepAliveStrategy.INSTANCE)
                 // 重试次数，可以自定义是否发起重试
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(0, false)).build();
