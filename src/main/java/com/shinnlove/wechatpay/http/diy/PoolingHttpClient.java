@@ -58,7 +58,7 @@ public class PoolingHttpClient {
         // 懒初始化
         if (httpClient == null) {
 
-            // 如果https使用自己的证书，可以初始化`KeyStore`、`KeyManagerFactory`、`SSLContext`
+            // 如果https使用自己的证书，可以初始化`KeyStore`(PKCS12, load)、`KeyManagerFactory(pwd, init)`、`SSLContext(TLS、init)`
             // 这里使用默认的`SSLConnectionSocketFactory.getSystemSocketFactory()`来创建
 
             // 注册访问协议相关的SocketFactory，支持http/https
