@@ -90,13 +90,13 @@ DES，即`Data Encryptin Standard`，1977年颁布的`数据加密标准`。
 
 `3DES`使用3条56位的密钥对数据进行3次加密，是`DES`的一个更安全的变形。
 
-代码省略稍后补齐......
+[3DES算法Java版](https://github.com/shinnlove/wechatpay/blob/master/src/main/java/com/shinnlove/wechatpay/security/DESDemo.java)。
 
 ### c) AES算法
 
 `AES`的全称是`Advanced Encryption Standard`，即高级加密标准，已成为对称加密算法中最流行的算法之一。
 
-代码省略稍后补齐...
+[AES算法Java版](https://github.com/shinnlove/wechatpay/blob/master/src/main/java/com/shinnlove/wechatpay/security/DESDemo.java)。
 
 **AES算法支持128、192、256三种密钥长度，但是由于美国对加密软件出口的控制，如果使用192位和256位的密钥，则需要另外下载无政策和司法限制的文件，否则运行时会出现异常。**
 
@@ -131,7 +131,6 @@ RSA算法的数论基础：**将两个大素数相乘十分容易，但反过来
 将通信内容的摘要信息使用发送者的私钥进行加密，然后将密文与原文一起传输给信息的接收者，接收者通过发送者的公钥解密被加密的摘要信息，然后使用与发送者相同的摘要算法，对收到的内容采用相同的方式产生摘要串，与解密的摘要串进行对比，如果相同，则说明接收到的内容是完整的，在传输过程中没有受到第三方篡改。
 
 **常见的数字签名算法包括：`MD5withRSA`、`SHA1withRSA`和`SHA256withRSA`。**
-
 
 
 算法代码稍后补齐...
