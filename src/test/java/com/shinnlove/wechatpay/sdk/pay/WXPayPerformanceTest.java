@@ -308,19 +308,14 @@ public class WXPayPerformanceTest {
 
     }
 
-    public void testHelloWorld() throws Exception {
-        for (int i = 0; i < 1000; ++i) {
-            System.out.println("hi");
-            Thread.sleep(1000);
-        }
-    }
-
     public static void main(String[] args) throws Exception {
         System.out.println("--------------->");
         WXPayPerformanceTest dodo = new WXPayPerformanceTest();
 
-        dodo.doUnifiedOrder();
-        dodo.doRefund();
+        dodo.doOrderQuery();
+
+        // dodo.doUnifiedOrder();
+        // dodo.doRefund();
 
         // dodo.doMicropayWithPos();
 
@@ -331,7 +326,6 @@ public class WXPayPerformanceTest {
         // dodo.testRefundSpeed();
         // dodo.testUnifiedOrderSpeed();
         // dodo.testRefundSpeed();
-        // dodo.testHelloWorld();
         System.out.println("<---------------"); // wx2016112510573077
         Thread.sleep(5000);
     }
