@@ -5,13 +5,17 @@
 package com.shinnlove.wechatpay.http.diy;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -134,33 +138,34 @@ public class PoolingHttpClient {
         return httpClient;
     }
 
-    public static void main(String[] args) {
-
+    public static void doHttpGet() {
         CloseableHttpClient httpClient = getHttpClient();
 
-        HttpGet hGet = new HttpGet(
-            "http://instasset-zth-2.gz00b.dev.alipay.net/resultcode/query.json?_input_charset=UTF-8&ctoken=bK1E6Uba3BGcrNb-");
+//        HttpGet hGet = new HttpGet(
+//            "http://instasset-zth-2.gz00b.dev.alipay.net/resultcode/query.json?_input_charset=UTF-8&ctoken=bK1E6Uba3BGcrNb-");
+
+        HttpGet hGet = new HttpGet("http://10.8.160.227:21237/v/api/user/credit_customers/?star_ids=12390380912472,123149780&timestamp=1541830265&nonce=7434030276&token=791886dd15dffb56b5d60070a475259018a363a3");
 
         // 设置请求头
         Header[] headers = RequestHeaderBuilder.custom()
-        // accept
-            .accept(DefaultHeaders.ACCEPT)
-            // 可接受编码集
-            .acceptEncoding(DefaultHeaders.ACCEPT_ENCODING)
-            // 可接受语言
-            .acceptLanguage(DefaultHeaders.ACCEPT_LANGUAGE)
-            // 添加连接类型
-            .connection(DefaultHeaders.KEEP_ALIVE)
-            // 增加content-type
-            .contentType(DefaultHeaders.CONTENT_TYPE)
-            // Cookie
-            .cookie(DefaultHeaders.COOKIE)
-            // 增加主机地址
-            .host(DefaultHeaders.HOST)
-            // 请求来源
-            .referer(DefaultHeaders.REFERER)
-            // 用户代理
-            .userAgent(DefaultHeaders.USER_AGENT).build();
+                // accept
+                .accept(DefaultHeaders.ACCEPT)
+                // 可接受编码集
+                .acceptEncoding(DefaultHeaders.ACCEPT_ENCODING)
+                // 可接受语言
+                .acceptLanguage(DefaultHeaders.ACCEPT_LANGUAGE)
+                // 添加连接类型
+                .connection(DefaultHeaders.KEEP_ALIVE)
+                // 增加content-type
+                .contentType(DefaultHeaders.CONTENT_TYPE)
+                // Cookie
+                .cookie(DefaultHeaders.COOKIE)
+                // 增加主机地址
+                .host(DefaultHeaders.HOST)
+                // 请求来源
+                .referer(DefaultHeaders.REFERER)
+                // 用户代理
+                .userAgent(DefaultHeaders.USER_AGENT).build();
 
         hGet.setHeaders(headers);
 
@@ -172,6 +177,60 @@ public class PoolingHttpClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+
+        String host = "https://xgk.microyan.com";
+        String url = "https://xgk.microyan.com/api/course/2949/vote";
+        String refer = "https://xgk.microyan.com/wx/pay/article?articleId=2949";
+        String origin = "https://xgk.microyan.com";
+        String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
+        String cookie = "CNZZDATA1260640839=1047289734-1484787657-%7C1484787657; JSESSIONID=c5074d84-eb06-4e49-884d-6973469b9495; spring-rm=MTUwMjEyMzc1NTE6MTU0NTU1Mjc3MTAyNzoxNGY5OTAxYWM5N2Q1ZDljNTZiYWFjYmE4ODA4NmZmMw";
+
+        CloseableHttpClient httpClient = getHttpClient();
+        HttpPost httpPost = new HttpPost(url);
+
+        // 设置请求头
+        Header[] headers = RequestHeaderBuilder.custom()
+                // accept
+                .accept(DefaultHeaders.ACCEPT)
+                // 可接受编码集
+                .acceptEncoding(DefaultHeaders.ACCEPT_ENCODING)
+                // 可接受语言
+                .acceptLanguage(DefaultHeaders.ACCEPT_LANGUAGE)
+                // 添加连接类型
+//                .connection(DefaultHeaders.KEEP_ALIVE)
+                // 增加content-type
+//                .contentType(DefaultHeaders.CONTENT_TYPE)
+                // Cookie
+                .cookie(cookie)
+                // 增加主机地址
+                .host(host)
+                // 源头
+                .origin(origin)
+                // 请求来源
+                .referer(refer)
+                // 用户代理
+                .userAgent(userAgent).build();
+
+        httpPost.setHeaders(headers);
+
+        HttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // 检验返回码
+        int statusCode = response.getStatusLine().getStatusCode();
+        if(statusCode != HttpStatus.SC_OK){
+            System.out.println("请求出错");
+        }
+
+        System.out.println(response);
+
 
     }
 

@@ -81,9 +81,7 @@ public class WXPayConfigImpl extends WXPayConfig {
 
     @Override
     public InputStream getCertStream() {
-        ByteArrayInputStream certBis;
-        certBis = new ByteArrayInputStream(this.certData);
-        return certBis;
+        return new ByteArrayInputStream(this.certData);
     }
 
     @Override

@@ -100,6 +100,14 @@ public class RequestHeaderBuilder {
     }
 
     /**
+     * 增加请求origin。
+     *
+     * @param origin
+     * @return
+     */
+    public RequestHeaderBuilder origin(String origin) { return addHeader(HttpRequestHeaderConst.ORIGIN, origin); }
+
+    /**
      * 添加cookie。
      *
      * @param cookie

@@ -85,6 +85,8 @@ public class HttpRequestHeaderConst {
 
     public static final String RANGE               = "Range";
 
+    public static final String ORIGIN              = "origin";
+
     /** 从哪个来源发起的请求，一般用于跨域验证 */
     public static final String REFERER             = "Referer";
 
