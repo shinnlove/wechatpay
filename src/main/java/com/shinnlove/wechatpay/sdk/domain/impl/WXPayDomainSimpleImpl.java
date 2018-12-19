@@ -83,7 +83,7 @@ public class WXPayDomainSimpleImpl implements IWXPayDomain {
     }
 
     /**
-     * @see IWXPayDomain#getDomain(com.github.wxpay.sdk.WXPayConfig)
+     * @see IWXPayDomain#getDomain(WXPayConfig) 
      */
     @Override
     public synchronized DomainInfo getDomain(final WXPayConfig config) {

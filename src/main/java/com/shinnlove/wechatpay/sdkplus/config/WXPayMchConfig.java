@@ -4,6 +4,8 @@
  */
 package com.shinnlove.wechatpay.sdkplus.config;
 
+import java.io.*;
+
 import com.shinnlove.wechatpay.sdkplus.enums.WXPayMode;
 import com.shinnlove.wechatpay.sdkplus.enums.WXPaySignType;
 
@@ -16,37 +18,40 @@ import com.shinnlove.wechatpay.sdkplus.enums.WXPaySignType;
 public class WXPayMchConfig {
 
     /** V3版微信支付是MCHID */
-    private String    mchId;
+    private String        mchId;
 
     /** 微信服务商代理子商户号 */
-    private String    subMchId;
+    private String        subMchId;
 
     /** 微信支付公众号appid */
-    private String    appId;
+    private String        appId;
 
     /** 微信支付子公众号appid（服务商模式） */
-    private String    subAppId;
+    private String        subAppId;
 
     /** 三方app secret */
-    private String    appSecret;
+    private String        appSecret;
 
     /** 商户API密钥 */
-    private String    apiKey;
+    private String        apiKey;
 
     /** p12文件 */
-    private String    certP12;
+    private String        certP12;
 
     /** 支付证书绝对路径 */
-    private String    sslcertPath;
+    private String        sslcertPath;
 
     /** 支付密钥证书绝对路径 */
-    private String    sslkeyPath;
+    private String        sslkeyPath;
 
     /** 证书根地址 */
-    private String    rootcaPem;
+    private String        rootcaPem;
+
+    /** 证书文件读入字节流 */
+    private InputStream   certStream;
 
     /** 微信支付种类：0是普通商户、1是服务商模式 */
-    private WXPayMode payMode;
+    private WXPayMode     payMode;
 
     /** 微信支付签名类型：1是MD5（默认类型）、2是HMACSHA256 */
     private WXPaySignType signType;
@@ -63,7 +68,7 @@ public class WXPayMchConfig {
     /**
      * 构造函数。
      *
-     * @param mchId
+     * @param mchId       
      * @param subMchId
      * @param appId
      * @param subAppId
@@ -94,6 +99,39 @@ public class WXPayMchConfig {
         this.payMode = payMode;
         this.signType = signType;
         this.useSandBox = useSandBox;
+        // 读入证书（NFS上需要转成二进制流）
+        readCertData(sslcertPath);
+    }
+
+    /**
+     * 根据证书地址读入证书文件二进制流。
+     *
+     * @param certPath
+     */
+    private void readCertData(String certPath) {
+        //        String certPath = "/Users/zhaochensheng/Documents/Shinnlove/我的资料/微动证书/apiclient_cert.p12";
+        InputStream fileStream = null;
+        try {
+            File file = new File(certPath);
+            fileStream = new FileInputStream(file);
+            // 文件数据
+            byte[] fileData = new byte[(int) file.length()];
+            // 读入
+            fileStream.read(fileData);
+            // 包装流
+            certStream = new ByteArrayInputStream(fileData);
+        } catch (Exception e) {
+            // ...
+            certStream = new ByteArrayInputStream(new byte[0]);
+        } finally {
+            if (fileStream != null) {
+                try {
+                    fileStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -274,6 +312,24 @@ public class WXPayMchConfig {
      */
     public void setRootcaPem(String rootcaPem) {
         this.rootcaPem = rootcaPem;
+    }
+
+    /**
+     * Getter method for property certStream.
+     *
+     * @return property value of certStream
+     */
+    public InputStream getCertStream() {
+        return certStream;
+    }
+
+    /**
+     * Setter method for property certStream.
+     *
+     * @param certStream value to be assigned to property certStream
+     */
+    public void setCertStream(InputStream certStream) {
+        this.certStream = certStream;
     }
 
     /**

@@ -95,10 +95,10 @@ public abstract class WXPayRequestClient extends AbstractWXPayClient implements 
         // 是否需要证书
         boolean needCert = requestNeedCert();
 
-        // 打印入参
+        // 打印入参（打印出入参放到doRequest中?）
 
         // 执行
-        String response = wxPayRequestExecutor.doRequest(url, reqBody, needCert);
+        String response = wxPayRequestExecutor.doRequest(wxPayMchConfig, url, reqBody, needCert);
 
         // 打印出参
 
