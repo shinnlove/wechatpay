@@ -25,8 +25,13 @@ public class DownloadBillClient extends WXPayRequestClient {
      */
     public DownloadBillClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
-        this.requestURL = WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
-                          + WXPayConstants.DOWNLOADBILL_URL_SUFFIX;
+    }
+
+    @Override
+    public void fillRequestDetailParams(Map<String, String> keyPairs, Map<String, String> payParams) {
+        // 对账单需要的参数
+        // 对账日期
+        payParams.put(WXPayConstants.BILL_DATE, keyPairs.get(WXPayConstants.BILL_DATE));
     }
 
     @Override
@@ -44,10 +49,22 @@ public class DownloadBillClient extends WXPayRequestClient {
     }
 
     @Override
-    public void fillRequestDetailParams(Map<String, String> keyPairs) {
-        // 对账单需要的参数
-        // 对账日期
-        payParameters.put(WXPayConstants.BILL_DATE, keyPairs.get(WXPayConstants.BILL_DATE));
+    public boolean requestNeedCert() {
+        // 下载对账单不需要证书
+        return false;
+    }
+
+    @Override
+    public String payRequestURL(WXPayMchConfig config) {
+        if (config.isUseSandBox()) {
+            // 沙箱环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SANDBOX_DOWNLOADBILL_URL_SUFFIX;
+        } else {
+            // 正式环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.DOWNLOADBILL_URL_SUFFIX;
+        }
     }
 
 }

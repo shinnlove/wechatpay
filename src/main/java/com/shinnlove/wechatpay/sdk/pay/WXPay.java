@@ -159,6 +159,7 @@ public class WXPay {
 
     /**
      * 不需要证书的请求
+     * 
      * @param urlSuffix String
      * @param reqData 向wxpay post的请求数据
      * @param connectTimeoutMs 超时时间，单位是毫秒
@@ -168,8 +169,9 @@ public class WXPay {
      */
     public String requestWithoutCert(String urlSuffix, Map<String, String> reqData,
                                      int connectTimeoutMs, int readTimeoutMs) throws Exception {
-        // 先将xml变成string
+        // 将nonce_str作为uuid，在report时候上报，实际支付请求中没有用
         String msgUUID = reqData.get("nonce_str");
+        // 先将xml变成string
         String reqBody = WXPayUtil.mapToXml(reqData);
 
         // 再使用`httpclient`请求
@@ -179,6 +181,7 @@ public class WXPay {
 
     /**
      * 需要证书的请求
+     * 
      * @param urlSuffix String
      * @param reqData 向wxpay post的请求数据  Map
      * @param connectTimeoutMs 超时时间，单位是毫秒

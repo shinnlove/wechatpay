@@ -236,8 +236,8 @@ public class WXPayTest {
         WXPayTest dodo = new WXPayTest();
         // dodo.doGetSandboxSignKey();
 
-        // dodo.doUnifiedOrder();
-        // dodo.doOrderQuery();
+        dodo.doUnifiedOrder();
+        dodo.doOrderQuery();
         dodo.doDownloadBill();
         // dodo.doShortUrl();
         // dodo.test001();

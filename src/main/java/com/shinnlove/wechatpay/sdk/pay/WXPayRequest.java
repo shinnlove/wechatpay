@@ -211,6 +211,7 @@ public class WXPayRequest {
 
     /**
      * 可重试的，非双向认证的请求
+     * 
      * @param urlSuffix
      * @param uuid
      * @param data
@@ -293,6 +294,7 @@ public class WXPayRequest {
 
     /**
      * 可重试的，双向认证的请求
+     * 
      * @param urlSuffix
      * @param uuid
      * @param data

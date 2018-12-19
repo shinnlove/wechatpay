@@ -7,41 +7,31 @@ package com.shinnlove.wechatpay.sdkplus.service.request.base;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.shinnlove.wechatpay.sdk.utils.WXPayUtil;
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
+import com.shinnlove.wechatpay.sdkplus.http.WXPayRequestExecutor;
+import com.shinnlove.wechatpay.sdkplus.invoker.WXPayInvoker;
 import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
-import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestExecuteHandler;
-import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestParamsHandler;
-import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestSequenceHandler;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayExecuteHandler;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayParamsHandler;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayService;
 
 /**
  * 微信支付主动请求抽象类。
  *
- * 微信支付能力透出：{@link WXPayRequestSequenceHandler}
- * 各类请求参数处理接口：{@link WXPayRequestParamsHandler}
- * 各类请求公共执行接口：{@link WXPayRequestExecuteHandler}
+ * 微信支付能力透出：{@link WXPayService}
+ * 各类请求参数处理接口：{@link WXPayParamsHandler}
+ * 各类请求公共执行接口：{@link WXPayExecuteHandler}
  *
  * @author shinnlove.jinsheng
  * @version $Id: WXPayRequestClient.java, v 0.1 2018-12-18 下午4:13 shinnlove.jinsheng Exp $$
  */
-public abstract class WXPayRequestClient extends AbstractWXPayClient implements
-                                                                    WXPayRequestSequenceHandler,
-                                                                    WXPayRequestParamsHandler,
-                                                                    WXPayRequestExecuteHandler {
+public abstract class WXPayRequestClient extends AbstractWXPayClient implements WXPayService,
+                                                                    WXPayParamsHandler,
+                                                                    WXPayExecuteHandler {
 
-    /** 各个主动请求的地址 */
-    protected String              requestURL;
-
-    /** 请求超时时间 */
-    protected int                 request_timeout;
-
-    /** 支付请求参数 */
-    protected Map<String, String> payParameters = new HashMap<>();
-
-    /** 支付响应结果：XML格式 */
-    protected String              response;
-
-    /** 支付响应结果KeyPairs */
-    protected Map<String, String> payResult     = new HashMap<>();
+    /** 微信支付请求对象 */
+    protected WXPayRequestExecutor wxPayRequestExecutor;
 
     /**
      * 构造函数。
@@ -53,125 +43,75 @@ public abstract class WXPayRequestClient extends AbstractWXPayClient implements
     }
 
     @Override
-    public void doPayRequest(Map<String, String> keyPairs) throws Exception {
-        // 校验支付入参
+    public Map<String, String> doPayRequest(Map<String, String> keyPairs, WXPayInvoker invoker)
+                                                                                               throws Exception {
+        // 一次微信请求的payParameters可以作为这个函数的局部变量栈上分配优化...
+        Map<String, String> payParams = new HashMap<>();
+
+        // Step1：校验支付入参
         checkParameters(keyPairs);
-        // 填写请求入参
-        fillRequestParams(keyPairs);
-        // 执行请求
-        executePayRequest();
-        // 解码请求结果
+
+        // Step2：填写请求入参
+        fillRequestParams(keyPairs, payParams);
+
+        // Step3：执行请求
+        String respStr = executePayRequest(payParams);
+
+        // Step4：解码请求结果
+        final Map<String, String> response = processResponseXml(respStr);
+
+        // Step5：回调外层
+        invoker.doPayCallback(response);
+
+        // PS：结果还是返回，如果外面想要...
+        return response;
     }
 
     @Override
-    public void fillRequestParams(Map<String, String> keyPairs) throws Exception {
+    public void fillRequestParams(Map<String, String> keyPairs, final Map<String, String> payParams)
+                                                                                                    throws Exception {
         // 策略模式上下文填写请求主体信息
-        wxPayModeContext.fillRequestMainBodyParams(wxPayMchConfig, payParameters);
+        wxPayModeContext.fillRequestMainBodyParams(wxPayMchConfig, payParams);
+
         // 交给具体的子类完成其他请求必填参数
-        fillRequestDetailParams(keyPairs);
+        fillRequestDetailParams(keyPairs, payParams);
     }
 
     /**
      * 抽象填入请求需要的具体字段信息。
      * 
-     * @param keyPairs 
+     * @param keyPairs  
+     * @param payParams
      */
-    public abstract void fillRequestDetailParams(Map<String, String> keyPairs);
+    public abstract void fillRequestDetailParams(Map<String, String> keyPairs,
+                                                 final Map<String, String> payParams);
 
     @Override
-    public String executePayRequest() {
-        // 具体执行请求步骤...
-        return null;
-    }
+    public String executePayRequest(final Map<String, String> payParams) throws Exception {
+        // 请求地址
+        String url = payRequestURL(wxPayMchConfig);
+        // 组装支付xml报文
+        String reqBody = WXPayUtil.mapToXml(payParams);
+        // 是否需要证书
+        boolean needCert = requestNeedCert();
 
-    /**
-     * Getter method for property requestURL.
-     *
-     * @return property value of requestURL
-     */
-    public String getRequestURL() {
-        return requestURL;
-    }
+        // 打印入参
 
-    /**
-     * Setter method for property requestURL.
-     *
-     * @param requestURL value to be assigned to property requestURL
-     */
-    public void setRequestURL(String requestURL) {
-        this.requestURL = requestURL;
-    }
+        // 执行
+        String response = wxPayRequestExecutor.doRequest(url, reqBody, needCert);
 
-    /**
-     * Getter method for property request_timeout.
-     *
-     * @return property value of request_timeout
-     */
-    public int getRequest_timeout() {
-        return request_timeout;
-    }
+        // 打印出参
 
-    /**
-     * Setter method for property request_timeout.
-     *
-     * @param request_timeout value to be assigned to property request_timeout
-     */
-    public void setRequest_timeout(int request_timeout) {
-        this.request_timeout = request_timeout;
-    }
-
-    /**
-     * Getter method for property payParameters.
-     *
-     * @return property value of payParameters
-     */
-    public Map<String, String> getPayParameters() {
-        return payParameters;
-    }
-
-    /**
-     * Setter method for property payParameters.
-     *
-     * @param payParameters value to be assigned to property payParameters
-     */
-    public void setPayParameters(Map<String, String> payParameters) {
-        this.payParameters = payParameters;
-    }
-
-    /**
-     * Getter method for property response.
-     *
-     * @return property value of response
-     */
-    public String getResponse() {
         return response;
     }
 
     /**
-     * Setter method for property response.
+     * Setter method for property wxPayRequestExecutor.
      *
-     * @param response value to be assigned to property response
+     * @param wxPayRequestExecutor value to be assigned to property wxPayRequestExecutor
      */
-    public void setResponse(String response) {
-        this.response = response;
-    }
-
-    /**
-     * Getter method for property payResult.
-     *
-     * @return property value of payResult
-     */
-    public Map<String, String> getPayResult() {
-        return payResult;
-    }
-
-    /**
-     * Setter method for property payResult.
-     *
-     * @param payResult value to be assigned to property payResult
-     */
-    public void setPayResult(Map<String, String> payResult) {
-        this.payResult = payResult;
+    public void setWxPayRequestExecutor(WXPayRequestExecutor wxPayRequestExecutor) {
+        this.wxPayRequestExecutor = wxPayRequestExecutor;
     }
 
 }

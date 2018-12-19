@@ -25,8 +25,38 @@ public class RefundClient extends WXPayRequestClient {
      */
     public RefundClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
-        this.requestURL = WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
-                          + WXPayConstants.REFUND_URL_SUFFIX;
+    }
+
+    @Override
+    public void fillRequestDetailParams(Map<String, String> keyPairs, Map<String, String> payParams) {
+        // 退款必填五大要素
+
+        // 商户订单号
+        payParams.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
+        // 商户退款单号
+        payParams.put(WXPayConstants.OUT_REFUND_NO, keyPairs.get(WXPayConstants.OUT_REFUND_NO));
+        // 总金额
+        payParams.put(WXPayConstants.TOTAL_FEE, keyPairs.get(WXPayConstants.TOTAL_FEE));
+        // 退款金额（支持部分退款）
+        payParams.put(WXPayConstants.REFUND_FEE, keyPairs.get(WXPayConstants.REFUND_FEE));
+        // 操作员（当前商户）
+        payParams.put(WXPayConstants.OP_USER_ID, keyPairs.get(WXPayConstants.OP_USER_ID));
+
+        // 退款其他选填参数
+        if (keyPairs.containsKey(WXPayConstants.TRANSACTION_ID)) {
+            // 微信订单号（有out_trade_no可以不用填）
+            payParams.put(WXPayConstants.TRANSACTION_ID,
+                keyPairs.get(WXPayConstants.TRANSACTION_ID));
+        }
+        if (keyPairs.containsKey(WXPayConstants.DEVICE_INFO)) {
+            // 设备号
+            payParams.put(WXPayConstants.DEVICE_INFO, keyPairs.get(WXPayConstants.DEVICE_INFO));
+        }
+        if (keyPairs.containsKey(WXPayConstants.OP_USER_PASSWD)) {
+            // 操作员密码（当前商户登录密码），这个参数V2版本以后已经不用了
+            payParams.put(WXPayConstants.OP_USER_PASSWD,
+                keyPairs.get(WXPayConstants.OP_USER_PASSWD));
+        }
     }
 
     @Override
@@ -53,36 +83,22 @@ public class RefundClient extends WXPayRequestClient {
     }
 
     @Override
-    public void fillRequestDetailParams(Map<String, String> keyPairs) {
-        // 退款必填五大要素
+    public boolean requestNeedCert() {
+        // 申请退款需要双向证书
+        return true;
+    }
 
-        // 商户订单号
-        payParameters.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
-        // 商户退款单号
-        payParameters.put(WXPayConstants.OUT_REFUND_NO, keyPairs.get(WXPayConstants.OUT_REFUND_NO));
-        // 总金额
-        payParameters.put(WXPayConstants.TOTAL_FEE, keyPairs.get(WXPayConstants.TOTAL_FEE));
-        // 退款金额（支持部分退款）
-        payParameters.put(WXPayConstants.REFUND_FEE, keyPairs.get(WXPayConstants.REFUND_FEE));
-        // 操作员（当前商户）
-        payParameters.put(WXPayConstants.OP_USER_ID, keyPairs.get(WXPayConstants.OP_USER_ID));
-
-        // 退款其他选填参数
-        if (keyPairs.containsKey(WXPayConstants.TRANSACTION_ID)) {
-            // 微信订单号（有out_trade_no可以不用填）
-            payParameters.put(WXPayConstants.TRANSACTION_ID,
-                keyPairs.get(WXPayConstants.TRANSACTION_ID));
+    @Override
+    public String payRequestURL(WXPayMchConfig config) {
+        if (config.isUseSandBox()) {
+            // 沙箱环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SANDBOX_REFUND_URL_SUFFIX;
+        } else {
+            // 正式环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.REFUND_URL_SUFFIX;
         }
-        if (keyPairs.containsKey(WXPayConstants.DEVICE_INFO)) {
-            // 设备号
-            payParameters.put(WXPayConstants.DEVICE_INFO, keyPairs.get(WXPayConstants.DEVICE_INFO));
-        }
-        if (keyPairs.containsKey(WXPayConstants.OP_USER_PASSWD)) {
-            // 操作员密码（当前商户登录密码），这个参数V2版本以后已经不用了
-            payParameters.put(WXPayConstants.OP_USER_PASSWD,
-                keyPairs.get(WXPayConstants.OP_USER_PASSWD));
-        }
-
     }
 
 }

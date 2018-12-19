@@ -51,9 +51,18 @@ public class WXPayMchConfig {
     /** 微信支付签名类型：1是MD5（默认类型）、2是HMACSHA256 */
     private WXPaySignType signType;
 
+    /** 当前商户是否使用沙箱环境进行测试 */
+    private boolean       useSandBox;
+
+    /**
+     * construct for reflect
+     */
+    public WXPayMchConfig() {
+    }
+
     /**
      * 构造函数。
-     * 
+     *
      * @param mchId
      * @param subMchId
      * @param appId
@@ -66,11 +75,12 @@ public class WXPayMchConfig {
      * @param rootcaPem
      * @param payMode
      * @param signType
+     * @param useSandBox
      */
     public WXPayMchConfig(String mchId, String subMchId, String appId, String subAppId,
                           String appSecret, String apiKey, String certP12, String sslcertPath,
                           String sslkeyPath, String rootcaPem, WXPayMode payMode,
-                          WXPaySignType signType) {
+                          WXPaySignType signType, boolean useSandBox) {
         this.mchId = mchId;
         this.subMchId = subMchId;
         this.appId = appId;
@@ -83,8 +93,8 @@ public class WXPayMchConfig {
         this.rootcaPem = rootcaPem;
         this.payMode = payMode;
         this.signType = signType;
+        this.useSandBox = useSandBox;
     }
-
 
     /**
      * Getter method for property mchId.
@@ -300,6 +310,19 @@ public class WXPayMchConfig {
      */
     public void setSignType(WXPaySignType signType) {
         this.signType = signType;
+    }
+
+    public boolean isUseSandBox() {
+        return useSandBox;
+    }
+
+    /**
+     * Setter method for property useSandBox.
+     *
+     * @param useSandBox value to be assigned to property useSandBox
+     */
+    public void setUseSandBox(boolean useSandBox) {
+        this.useSandBox = useSandBox;
     }
 
 }

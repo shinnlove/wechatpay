@@ -25,8 +25,27 @@ public class RefundQueryClient extends WXPayRequestClient {
      */
     public RefundQueryClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
-        this.requestURL = WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
-                          + WXPayConstants.REFUNDQUERY_URL_SUFFIX;
+    }
+
+    @Override
+    public void fillRequestDetailParams(Map<String, String> keyPairs, Map<String, String> payParams) {
+        // 退款查询需要的参数
+
+        // 设置商户订单号，商户系统内部订单号，32个字符内、字母和数组，唯一性
+        payParams.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
+        if (keyPairs.containsKey(WXPayConstants.OUT_REFUND_NO)) {
+            // 商户侧退款单号
+            payParams.put(WXPayConstants.OUT_REFUND_NO, keyPairs.get(WXPayConstants.OUT_REFUND_NO));
+        }
+        if (keyPairs.containsKey(WXPayConstants.TRANSACTION_ID)) {
+            // 微信侧订单号
+            payParams.put(WXPayConstants.TRANSACTION_ID,
+                keyPairs.get(WXPayConstants.TRANSACTION_ID));
+        }
+        if (keyPairs.containsKey(WXPayConstants.REFUND_ID)) {
+            // 微信侧退款单号
+            payParams.put(WXPayConstants.REFUND_ID, keyPairs.get(WXPayConstants.REFUND_ID));
+        }
     }
 
     @Override
@@ -46,26 +65,22 @@ public class RefundQueryClient extends WXPayRequestClient {
     }
 
     @Override
-    public void fillRequestDetailParams(Map<String, String> keyPairs) {
-        // 退款查询需要的参数
+    public boolean requestNeedCert() {
+        // 查询退款不需要证书
+        return false;
+    }
 
-        // 设置商户订单号，商户系统内部订单号，32个字符内、字母和数组，唯一性
-        payParameters.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
-        if (keyPairs.containsKey(WXPayConstants.OUT_REFUND_NO)) {
-            // 商户侧退款单号
-            payParameters.put(WXPayConstants.OUT_REFUND_NO,
-                keyPairs.get(WXPayConstants.OUT_REFUND_NO));
+    @Override
+    public String payRequestURL(WXPayMchConfig config) {
+        if (config.isUseSandBox()) {
+            // 沙箱环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SANDBOX_REFUNDQUERY_URL_SUFFIX;
+        } else {
+            // 正式环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.REFUNDQUERY_URL_SUFFIX;
         }
-        if (keyPairs.containsKey(WXPayConstants.TRANSACTION_ID)) {
-            // 微信侧订单号
-            payParameters.put(WXPayConstants.TRANSACTION_ID,
-                keyPairs.get(WXPayConstants.TRANSACTION_ID));
-        }
-        if (keyPairs.containsKey(WXPayConstants.REFUND_ID)) {
-            // 微信侧退款单号
-            payParameters.put(WXPayConstants.REFUND_ID, keyPairs.get(WXPayConstants.REFUND_ID));
-        }
-
     }
 
 }

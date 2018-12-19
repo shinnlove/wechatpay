@@ -22,12 +22,9 @@ public class UnifiedOrderClient extends WXPayRequestClient {
      * 构造函数。
      *
      * @param wxPayMchConfig 
-     * @param url
      */
-    public UnifiedOrderClient(WXPayMchConfig wxPayMchConfig, String url) {
+    public UnifiedOrderClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
-        this.requestURL = WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
-                          + WXPayConstants.UNIFIEDORDER_URL_SUFFIX;
     }
 
     @Override
@@ -61,11 +58,13 @@ public class UnifiedOrderClient extends WXPayRequestClient {
                 if (!keyPairs.containsKey(WXPayConstants.OPENID)) {
                     throw new Exception("缺少用户的微信号openid，jsAPI支付下，此参数必须");
                 }
+                // break不能少，不然进入default
                 break;
             case WXPayConstants.NATIVE:
                 if (!keyPairs.containsKey(WXPayConstants.PRODUCT_ID)) {
                     throw new Exception("缺少原生扫码支付商品的product_id，NATIVE支付下，此参数必须");
                 }
+                // break不能少，不然进入default
                 break;
             case WXPayConstants.APP:
                 throw new Exception("统一支付目前不支持APP类型支付");
@@ -77,66 +76,89 @@ public class UnifiedOrderClient extends WXPayRequestClient {
     }
 
     @Override
-    public void fillRequestDetailParams(Map<String, String> keyPairs) {
+    public void fillRequestDetailParams(Map<String, String> keyPairs,
+                                        final Map<String, String> payParams) {
         // 统一下单的必填参数，其中appid公众账号id, mch_id商户号, noncestr随机字符串, spbill_create_ip订单生成机器的IP（weact服务器地址）, sign签名等5项由基类生成
 
         // 商品描述
-        payParameters.put(WXPayConstants.BODY, keyPairs.get(WXPayConstants.BODY));
+        payParams.put(WXPayConstants.BODY, keyPairs.get(WXPayConstants.BODY));
         // 设置商户订单号，商户系统内部订单号，32个字符内、字母和数组，唯一性
-        payParameters.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
+        payParams.put(WXPayConstants.OUT_TRADE_NO, keyPairs.get(WXPayConstants.OUT_TRADE_NO));
         // 总金额，单位为分，不能带小数点
-        payParameters.put(WXPayConstants.TOTAL_FEE, keyPairs.get(WXPayConstants.TOTAL_FEE));
+        payParams.put(WXPayConstants.TOTAL_FEE, keyPairs.get(WXPayConstants.TOTAL_FEE));
         // 支付通知地址，接收微信支付成功通知
-        payParameters.put(WXPayConstants.NOTIFY_URL, keyPairs.get(WXPayConstants.NOTIFY_URL));
+        payParams.put(WXPayConstants.NOTIFY_URL, keyPairs.get(WXPayConstants.NOTIFY_URL));
         // 本函数处理的交易类型:JSAPI（JSAPI、NATIVE、APP三种）
-        payParameters.put(WXPayConstants.TRADE_TYPE, keyPairs.get(WXPayConstants.TRADE_TYPE));
+        payParams.put(WXPayConstants.TRADE_TYPE, keyPairs.get(WXPayConstants.TRADE_TYPE));
 
         // 统一下单不同类型需要的参数
         if (keyPairs.containsKey(WXPayConstants.OPENID)) {
             // 用户的微信号openid,jsAPI下，此参数必须
-            payParameters.put(WXPayConstants.OPENID, keyPairs.get(WXPayConstants.OPENID));
+            payParams.put(WXPayConstants.OPENID, keyPairs.get(WXPayConstants.OPENID));
         }
         if (keyPairs.containsKey(WXPayConstants.PRODUCT_ID)) {
             // 商品ID，只在trade_type为native时需要填写，id是二维码中商品ID，商户自行维护
-            payParameters.put(WXPayConstants.PRODUCT_ID, keyPairs.get(WXPayConstants.PRODUCT_ID));
+            payParams.put(WXPayConstants.PRODUCT_ID, keyPairs.get(WXPayConstants.PRODUCT_ID));
         }
 
         // 统一下单的非必填参数，商户可根据实际情况选填
         if (keyPairs.containsKey(WXPayConstants.SPBILL_CREATE_IP)) {
             // 生成订单设备IP地址
-            payParameters.put(WXPayConstants.SPBILL_CREATE_IP,
+            payParams.put(WXPayConstants.SPBILL_CREATE_IP,
                 keyPairs.get(WXPayConstants.SPBILL_CREATE_IP));
         }
         if (keyPairs.containsKey(WXPayConstants.DEVICE_INFO)) {
             // 微信支付分配的终端设备号
-            payParameters.put(WXPayConstants.DEVICE_INFO, keyPairs.get(WXPayConstants.DEVICE_INFO));
+            payParams.put(WXPayConstants.DEVICE_INFO, keyPairs.get(WXPayConstants.DEVICE_INFO));
         }
         if (keyPairs.containsKey(WXPayConstants.ATTACH)) {
             // 附加数据，原样返回
-            payParameters.put(WXPayConstants.ATTACH, keyPairs.get(WXPayConstants.ATTACH));
+            payParams.put(WXPayConstants.ATTACH, keyPairs.get(WXPayConstants.ATTACH));
         }
         if (keyPairs.containsKey(WXPayConstants.TIME_START)) {
             // 订单生成时间，yyyyMMddHHmmss，20091225091010，取自商户服务器
-            payParameters.put(WXPayConstants.TIME_START, keyPairs.get(WXPayConstants.TIME_START));
+            payParams.put(WXPayConstants.TIME_START, keyPairs.get(WXPayConstants.TIME_START));
         }
         if (keyPairs.containsKey(WXPayConstants.TIME_EXPIRE)) {
             // 订单失效时间，yyyyMMddHHmmss，格式同上，取自商户服务器
-            payParameters.put(WXPayConstants.TIME_EXPIRE, keyPairs.get(WXPayConstants.TIME_EXPIRE));
+            payParams.put(WXPayConstants.TIME_EXPIRE, keyPairs.get(WXPayConstants.TIME_EXPIRE));
         }
         if (keyPairs.containsKey(WXPayConstants.GOODS_TAG)) {
             // 下单售卖商品标签，不要随意修改这个字段
-            payParameters.put(WXPayConstants.GOODS_TAG, keyPairs.get(WXPayConstants.GOODS_TAG));
+            payParams.put(WXPayConstants.GOODS_TAG, keyPairs.get(WXPayConstants.GOODS_TAG));
         }
 
+    }
+
+    @Override
+    public boolean requestNeedCert() {
+        // 统一下单不需要证书
+        return false;
+    }
+
+    @Override
+    public String payRequestURL(WXPayMchConfig config) {
+        if (config.isUseSandBox()) {
+            // 沙箱环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SANDBOX_UNIFIEDORDER_URL_SUFFIX;
+        } else {
+            // 正式环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.UNIFIEDORDER_URL_SUFFIX;
+        }
     }
 
     /**
      * 获取支付id。
      *
+     * 这个函数应该放在外层平台封装层。
+     *
      * @return
      */
     public String getPrepayId() {
-        return payResult.get(WXPayConstants.PREPAY_ID);
+        //        return payResult.get(WXPayConstants.PREPAY_ID);
+        return null;
     }
 
 }

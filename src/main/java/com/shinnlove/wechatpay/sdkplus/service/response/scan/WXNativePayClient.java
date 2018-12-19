@@ -4,8 +4,10 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.response.scan;
 
+import java.util.Map;
+
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
-import com.shinnlove.wechatpay.sdkplus.service.response.base.WXPayResponseClient;
+import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
 
 /**
  * 微信原生扫码支付响应类(接收商品id下单并回应)。
@@ -13,7 +15,7 @@ import com.shinnlove.wechatpay.sdkplus.service.response.base.WXPayResponseClient
  * @author shinnlove.jinsheng
  * @version $Id: WXNativePayClient.java, v 0.1 2018-12-18 下午5:29 shinnlove.jinsheng Exp $$
  */
-public class WXNativePayClient extends WXPayResponseClient {
+public class WXNativePayClient extends AbstractWXPayClient {
 
     /**
      * 构造函数。
@@ -25,8 +27,13 @@ public class WXNativePayClient extends WXPayResponseClient {
     }
 
     @Override
-    public String postXml() {
-        return null;
+    public void doBizSuccess(Map<String, String> responseData) throws Exception {
+        // 原生扫码业务成功
+    }
+
+    @Override
+    public void doBizFail(Map<String, String> responseData) throws Exception {
+        // 原生扫码业务失败
     }
 
 }

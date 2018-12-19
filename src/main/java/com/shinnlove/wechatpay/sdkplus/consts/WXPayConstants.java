@@ -54,6 +54,7 @@ public final class WXPayConstants {
     public static final String SANDBOX_REPORT_URL_SUFFIX           = "/sandboxnew/payitil/report";
     public static final String SANDBOX_SHORTURL_URL_SUFFIX         = "/sandboxnew/tools/shorturl";
     public static final String SANDBOX_AUTHCODETOOPENID_URL_SUFFIX = "/sandboxnew/tools/authcodetoopenid";
+    public static final String SANDBOX_SENDREDPACK_URL_SUFFIX      = "/sandboxnew/mmpaymkttransfers/sendredpack";
 
     // 商户主体
     public static final String APPID                               = "appid";
@@ -131,5 +132,12 @@ public final class WXPayConstants {
     public static final String REMARK                              = "remark";
     /** 奇葩的字段wxappid，红包新网页文档和原pdf文档好像格格不入 */
     public static final String WXAPPID                             = "wxappid";
+
+    // 微信支付响应返回字段
+
+    /** 微信支付通信返回码 */
+    public static final String RETURN_CODE                         = "return_code";
+    /** 微信支付业务返回码 */
+    public static final String RESULT_CODE                         = "result_code";
 
 }

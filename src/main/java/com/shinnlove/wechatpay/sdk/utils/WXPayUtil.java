@@ -189,6 +189,24 @@ public class WXPayUtil {
     }
 
     /**
+     * 克隆函数（可以删除）。
+     *
+     * @param data
+     * @param key
+     * @param signType
+     * @return
+     * @throws Exception
+     */
+    public static boolean isSignatureValid(Map<String, String> data, String key,
+                                           WXPaySignType signType) throws Exception {
+        if (!data.containsKey(WXPayConstants.FIELD_SIGN)) {
+            return false;
+        }
+        String sign = data.get(WXPayConstants.FIELD_SIGN);
+        return generateSignature(data, key, signType).equals(sign);
+    }
+
+    /**
      * 生成签名
      *
      * @param data 待签名数据

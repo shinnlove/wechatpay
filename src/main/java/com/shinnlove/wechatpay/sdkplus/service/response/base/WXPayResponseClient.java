@@ -12,6 +12,8 @@ import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
 /**
  * 微信支付通知响应类客户端。
  *
+ * TODO：思考paynotify+nativepay是否有必要抽象一层，这个类存在的必要性，目前先不用。
+ *
  * @author shinnlove.jinsheng
  * @version $Id: WXPayResponseClient.java, v 0.1 2018-12-18 下午5:20 shinnlove.jinsheng Exp $$
  */
@@ -35,18 +37,5 @@ public abstract class WXPayResponseClient extends AbstractWXPayClient {
         super(wxPayMchConfig);
     }
 
-    /**
-     * 通知响应类接口必须进行签名验签。
-     */
-    public void checkSign() {
-
-    }
-
-    /**
-     * 解析原始字符串变成Map对象。
-     */
-    public void resolveAndSave() {
-
-    }
 
 }

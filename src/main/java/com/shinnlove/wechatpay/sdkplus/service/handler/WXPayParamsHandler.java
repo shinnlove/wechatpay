@@ -10,9 +10,9 @@ import java.util.Map;
  * 微信支付——请求参数处理接口。
  *
  * @author shinnlove.jinsheng
- * @version $Id: WXPayRequestParamsHandler.java, v 0.1 2018-12-18 下午11:46 shinnlove.jinsheng Exp $$
+ * @version $Id: WXPayParamsHandler.java, v 0.1 2018-12-18 下午11:46 shinnlove.jinsheng Exp $$
  */
-public interface WXPayRequestParamsHandler {
+public interface WXPayParamsHandler {
 
     /**
      * Step1：校验微信支付必填参数。
@@ -31,9 +31,11 @@ public interface WXPayRequestParamsHandler {
      * 1、账户主体信息（区分普通商户模式和服务商户模式）；
      * 2、各类不同的微信支付接口请求必须的字段。
      * 
-     * @param keyPairs 
+     * @param keyPairs  
+     * @param payParams
      * @throws Exception
      */
-    void fillRequestParams(Map<String, String> keyPairs) throws Exception;
+    void fillRequestParams(Map<String, String> keyPairs, final Map<String, String> payParams)
+                                                                                             throws Exception;
 
 }

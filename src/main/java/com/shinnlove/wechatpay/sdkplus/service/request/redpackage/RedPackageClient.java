@@ -26,8 +26,6 @@ public class RedPackageClient extends WXPayRequestClient {
      */
     public RedPackageClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
-        this.requestURL = WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
-                          + WXPayConstants.SENDREDPACK_URL_SUFFIX;
     }
 
     @Override
@@ -75,18 +73,35 @@ public class RedPackageClient extends WXPayRequestClient {
     }
 
     @Override
-    public void fillRequestDetailParams(Map<String, String> keyPairs) {
+    public void fillRequestDetailParams(Map<String, String> keyPairs, Map<String, String> payParams) {
         // 发微信商户红包必填参数(字段含义请参考文档)
-        payParameters.put(WXPayConstants.MCH_BILLNO, keyPairs.get(WXPayConstants.MCH_BILLNO));
-        payParameters.put(WXPayConstants.SEND_NAME, keyPairs.get(WXPayConstants.SEND_NAME));
-        payParameters.put(WXPayConstants.RE_OPENID, keyPairs.get(WXPayConstants.RE_OPENID));
-        payParameters.put(WXPayConstants.TOTAL_AMOUNT, keyPairs.get(WXPayConstants.TOTAL_AMOUNT));
-        payParameters.put(WXPayConstants.TOTAL_NUM, keyPairs.get(WXPayConstants.TOTAL_NUM));
-        payParameters.put(WXPayConstants.WISHING, keyPairs.get(WXPayConstants.WISHING));
-        payParameters.put(WXPayConstants.CLIENT_IP, keyPairs.get(WXPayConstants.CLIENT_IP));
-        payParameters.put(WXPayConstants.ACT_NAME, keyPairs.get(WXPayConstants.ACT_NAME));
-        payParameters.put(WXPayConstants.REMARK, keyPairs.get(WXPayConstants.REMARK));
-        payParameters.put(WXPayConstants.WXAPPID, keyPairs.get(WXPayConstants.WXAPPID));
+        payParams.put(WXPayConstants.MCH_BILLNO, keyPairs.get(WXPayConstants.MCH_BILLNO));
+        payParams.put(WXPayConstants.SEND_NAME, keyPairs.get(WXPayConstants.SEND_NAME));
+        payParams.put(WXPayConstants.RE_OPENID, keyPairs.get(WXPayConstants.RE_OPENID));
+        payParams.put(WXPayConstants.TOTAL_AMOUNT, keyPairs.get(WXPayConstants.TOTAL_AMOUNT));
+        payParams.put(WXPayConstants.TOTAL_NUM, keyPairs.get(WXPayConstants.TOTAL_NUM));
+        payParams.put(WXPayConstants.WISHING, keyPairs.get(WXPayConstants.WISHING));
+        payParams.put(WXPayConstants.CLIENT_IP, keyPairs.get(WXPayConstants.CLIENT_IP));
+        payParams.put(WXPayConstants.ACT_NAME, keyPairs.get(WXPayConstants.ACT_NAME));
+        payParams.put(WXPayConstants.REMARK, keyPairs.get(WXPayConstants.REMARK));
+        payParams.put(WXPayConstants.WXAPPID, keyPairs.get(WXPayConstants.WXAPPID));
     }
 
+    @Override
+    public boolean requestNeedCert() {
+        return false;
+    }
+
+    @Override
+    public String payRequestURL(WXPayMchConfig config) {
+        if (config.isUseSandBox()) {
+            // 沙箱环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SANDBOX_SENDREDPACK_URL_SUFFIX;
+        } else {
+            // 正式环境
+            return WXPayConstants.HTTPS + WXPayConstants.DOMAIN_API
+                   + WXPayConstants.SENDREDPACK_URL_SUFFIX;
+        }
+    }
 }

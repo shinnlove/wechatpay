@@ -4,8 +4,10 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.response.pay;
 
+import java.util.Map;
+
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
-import com.shinnlove.wechatpay.sdkplus.service.response.base.WXPayResponseClient;
+import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
 
 /**
  * 微信支付结果通知客户端。
@@ -13,7 +15,7 @@ import com.shinnlove.wechatpay.sdkplus.service.response.base.WXPayResponseClient
  * @author shinnlove.jinsheng
  * @version $Id: WXPayNotifyClient.java, v 0.1 2018-12-18 下午5:28 shinnlove.jinsheng Exp $$
  */
-public class WXPayNotifyClient extends WXPayResponseClient {
+public class WXPayNotifyClient extends AbstractWXPayClient {
 
     /**
      * 构造函数。
@@ -25,8 +27,13 @@ public class WXPayNotifyClient extends WXPayResponseClient {
     }
 
     @Override
-    public String postXml() {
-        return null;
+    public void doBizSuccess(Map<String, String> responseData) throws Exception {
+        // 支付业务成功
+    }
+
+    @Override
+    public void doBizFail(Map<String, String> responseData) throws Exception {
+        // 支付业务失败
     }
 
 }
