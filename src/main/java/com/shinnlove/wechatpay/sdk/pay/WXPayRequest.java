@@ -173,7 +173,8 @@ public class WXPayRequest {
                 domainInfo.primaryDomain, connectTimeoutMs, readTimeoutMs, firstHasDnsErr,
                 firstHasConnectTimeout, firstHasReadTimeout);
             return result;
-        } catch (UnknownHostException ex) { // dns 解析错误，或域名不存在
+        } catch (UnknownHostException ex) {
+            // dns 解析错误，或域名不存在
             exception = ex;
             firstHasDnsErr = true;
             elapsedTimeMillis = WXPayUtil.getCurrentTimestampMs() - startTimestampMs;
@@ -182,6 +183,7 @@ public class WXPayRequest {
                 domainInfo.primaryDomain, connectTimeoutMs, readTimeoutMs, firstHasDnsErr,
                 firstHasConnectTimeout, firstHasReadTimeout);
         } catch (ConnectTimeoutException ex) {
+            // 连接超时
             exception = ex;
             firstHasConnectTimeout = true;
             elapsedTimeMillis = WXPayUtil.getCurrentTimestampMs() - startTimestampMs;
@@ -190,6 +192,7 @@ public class WXPayRequest {
                 domainInfo.primaryDomain, connectTimeoutMs, readTimeoutMs, firstHasDnsErr,
                 firstHasConnectTimeout, firstHasReadTimeout);
         } catch (SocketTimeoutException ex) {
+            // 端口套接字超时
             exception = ex;
             firstHasReadTimeout = true;
             elapsedTimeMillis = WXPayUtil.getCurrentTimestampMs() - startTimestampMs;
@@ -198,6 +201,7 @@ public class WXPayRequest {
                 domainInfo.primaryDomain, connectTimeoutMs, readTimeoutMs, firstHasDnsErr,
                 firstHasConnectTimeout, firstHasReadTimeout);
         } catch (Exception ex) {
+            // 其他异常超时
             exception = ex;
             elapsedTimeMillis = WXPayUtil.getCurrentTimestampMs() - startTimestampMs;
             WXPayReport.getInstance(config).report(uuid, elapsedTimeMillis, domainInfo.domain,

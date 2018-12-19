@@ -33,10 +33,10 @@ public class SDKPlusTest {
         client.doPayRequest(payParams, (resp) -> {
             String result_code = resp.get(WXPayConstants.RESULT_CODE);
             if (result_code.equals(WXPayConstants.SUCCESS)) {
-                // 做成功的事情
+                // biz成功回调
 
             } else {
-                // 做失败的事情
+                // biz失败收尾
 
             }
         });
