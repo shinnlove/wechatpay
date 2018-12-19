@@ -9,14 +9,24 @@ import java.util.Map;
 
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
 import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestExecuteHandler;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestParamsHandler;
+import com.shinnlove.wechatpay.sdkplus.service.handler.WXPayRequestSequenceHandler;
 
 /**
- * 微信支付主动请求类。
+ * 微信支付主动请求抽象类。
+ *
+ * 微信支付能力透出：{@link WXPayRequestSequenceHandler}
+ * 各类请求参数处理接口：{@link WXPayRequestParamsHandler}
+ * 各类请求公共执行接口：{@link WXPayRequestExecuteHandler}
  *
  * @author shinnlove.jinsheng
  * @version $Id: WXPayRequestClient.java, v 0.1 2018-12-18 下午4:13 shinnlove.jinsheng Exp $$
  */
-public abstract class WXPayRequestClient extends AbstractWXPayClient {
+public abstract class WXPayRequestClient extends AbstractWXPayClient implements
+                                                                    WXPayRequestSequenceHandler,
+                                                                    WXPayRequestParamsHandler,
+                                                                    WXPayRequestExecuteHandler {
 
     /** 各个主动请求的地址 */
     protected String              requestURL;
@@ -42,13 +52,35 @@ public abstract class WXPayRequestClient extends AbstractWXPayClient {
         super(wxPayMchConfig);
     }
 
-    /**
-     * 请求类型必定要postXML
-     *
-     * @return
-     */
     @Override
-    public String postXml() {
+    public void doPayRequest(Map<String, String> keyPairs) throws Exception {
+        // 校验支付入参
+        checkParameters(keyPairs);
+        // 填写请求入参
+        fillRequestParams(keyPairs);
+        // 执行请求
+        executePayRequest();
+        // 解码请求结果
+    }
+
+    @Override
+    public void fillRequestParams(Map<String, String> keyPairs) throws Exception {
+        // 策略模式上下文填写请求主体信息
+        wxPayModeContext.fillRequestMainBodyParams(wxPayMchConfig, payParameters);
+        // 交给具体的子类完成其他请求必填参数
+        fillRequestDetailParams(keyPairs);
+    }
+
+    /**
+     * 抽象填入请求需要的具体字段信息。
+     * 
+     * @param keyPairs 
+     */
+    public abstract void fillRequestDetailParams(Map<String, String> keyPairs);
+
+    @Override
+    public String executePayRequest() {
+        // 具体执行请求步骤...
         return null;
     }
 

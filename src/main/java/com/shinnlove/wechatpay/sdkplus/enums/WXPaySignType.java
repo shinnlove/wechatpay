@@ -5,23 +5,23 @@
 package com.shinnlove.wechatpay.sdkplus.enums;
 
 /**
- * 微信支付类型。
+ * 微信支付签约类型。
  *
  * @author shinnlove.jinsheng
- * @version $Id: WXPayMode.java, v 0.1 2018-12-18 下午3:51 shinnlove.jinsheng Exp $$
+ * @version $Id: WXPaySignType.java, v 0.1 2018-12-18 下午11:19 shinnlove.jinsheng Exp $$
  */
-public enum WXPayMode {
+public enum WXPaySignType {
 
-    /** 普通商户模式 */
-    ORDINARY(0, "普通商户模式"),
+    /** MD5方式 */
+    MD5(1, "MD5"),
 
-    /** 服务商模式 */
-    Service(1, "服务商模式");
+    /** HMACSHA256方式 */
+    HMACSHA256(2, "HMACSHA256");
 
     private int    code;
     private String message;
 
-    WXPayMode(int code, String message) {
+    WXPaySignType(int code, String message) {
         this.code = code;
         this.message = message;
     }

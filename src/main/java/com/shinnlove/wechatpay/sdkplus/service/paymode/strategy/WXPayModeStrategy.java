@@ -4,6 +4,10 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.paymode.strategy;
 
+import java.util.Map;
+
+import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
+
 /**
  * 微信支付策略模式，针对普通商户模式和服务商模式的不同所做的策略。
  *
@@ -13,10 +17,13 @@ package com.shinnlove.wechatpay.sdkplus.service.paymode.strategy;
 public interface WXPayModeStrategy {
 
     /**
-     * 根据不同的微信支付模式创建通信XML。
-     *
-     * @return
+     * 根据不同的微信支付模式填入支付主体信息。
+     * 
+     * @param wxPayMchConfig 
+     * @param payParameters
+     * @throws Exception
      */
-    String createXml();
+    void fillRequestMainBodyParams(WXPayMchConfig wxPayMchConfig,
+                                   final Map<String, String> payParameters) throws Exception;
 
 }

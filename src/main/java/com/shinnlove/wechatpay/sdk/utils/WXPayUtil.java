@@ -17,6 +17,7 @@ import org.w3c.dom.NodeList;
 
 import com.shinnlove.wechatpay.sdk.consts.WXPayConstants;
 import com.shinnlove.wechatpay.sdk.consts.WXPayConstants.SignType;
+import com.shinnlove.wechatpay.sdkplus.enums.WXPaySignType;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -231,6 +232,31 @@ public class WXPayUtil {
         }
     }
 
+    public static String generateSignature(final Map<String, String> data, String key,
+                                           WXPaySignType wxPaySignType) throws Exception {
+        // TODO：删掉这个函数。
+        Set<String> keySet = data.keySet();
+        String[] keyArray = keySet.toArray(new String[keySet.size()]);
+        // 字典序排序
+        Arrays.sort(keyArray);
+        StringBuilder sb = new StringBuilder();
+        for (String k : keyArray) {
+            if (k.equals(WXPayConstants.FIELD_SIGN)) {
+                continue;
+            }
+            if (data.get(k).trim().length() > 0) // 参数值为空，则不参与签名
+                sb.append(k).append("=").append(data.get(k).trim()).append("&");
+        }
+        sb.append("key=").append(key);
+        if (WXPaySignType.MD5.equals(wxPaySignType)) {
+            return MD5(sb.toString()).toUpperCase();
+        } else if (WXPaySignType.HMACSHA256.equals(wxPaySignType)) {
+            return HMACSHA256(sb.toString(), key);
+        } else {
+            throw new Exception(String.format("Invalid sign_type: %s", wxPaySignType));
+        }
+    }
+
     /**
      * 获取随机字符串 Nonce Str
      *
@@ -273,6 +299,20 @@ public class WXPayUtil {
             sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
         }
         return sb.toString().toUpperCase();
+    }
+
+    public static int mbStringLen(String value) {
+        int valueLength = 0;
+        String chinese = "[\u4e00-\u9fa5]";
+        for (int i = 0; i < value.length(); i++) {
+            String temp = value.substring(i, i + 1);
+            if (temp.matches(chinese)) {
+                valueLength += 2;
+            } else {
+                valueLength += 1;
+            }
+        }
+        return valueLength;
     }
 
     /**

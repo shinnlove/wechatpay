@@ -4,13 +4,16 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.paymode.context;
 
+import java.util.Map;
+
+import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
 import com.shinnlove.wechatpay.sdkplus.enums.WXPayMode;
 import com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.WXPayModeStrategy;
 import com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.impl.OrdinaryPayModeStrategy;
 import com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.impl.ServicePayModeStrategy;
 
 /**
- * 支付模式上下文，对外屏蔽不同模式的差异。
+ * 微信支付——支付模式上下文，对外屏蔽不同模式的差异。
  *
  * @author shinnlove.jinsheng
  * @version $Id: WXPayModeContext.java, v 0.1 2018-12-18 下午4:52 shinnlove.jinsheng Exp $$
@@ -37,13 +40,16 @@ public class WXPayModeContext {
     }
 
     /**
-     * 上下文对外透出一个方法。
+     * 上下文对外透出填充支付主体的能力：
+     *  根据微信支付模式策略填入支付请求商户主体信息。
      *
-     * @return
+     * @param wxPayMchConfig 
+     * @param payParameters
+     * @throws Exception
      */
-    public String createXml() {
-        // 具体使用不同策略的创建方式
-        return wxPayModeStrategy.createXml();
+    public void fillRequestMainBodyParams(WXPayMchConfig wxPayMchConfig,
+                                          final Map<String, String> payParameters) throws Exception {
+        wxPayModeStrategy.fillRequestMainBodyParams(wxPayMchConfig, payParameters);
     }
 
 }

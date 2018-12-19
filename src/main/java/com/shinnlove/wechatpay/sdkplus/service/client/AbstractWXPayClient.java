@@ -4,8 +4,6 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.client;
 
-import java.util.Map;
-
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
 import com.shinnlove.wechatpay.sdkplus.service.paymode.context.WXPayModeContext;
 
@@ -34,27 +32,6 @@ public abstract class AbstractWXPayClient implements WXPayClient {
     public AbstractWXPayClient(WXPayMchConfig wxPayMchConfig) {
         this.wxPayMchConfig = wxPayMchConfig;
         this.wxPayModeContext = new WXPayModeContext(wxPayMchConfig.getPayMode());
-    }
-
-    @Override
-    public void setParameter(String key, String value) {
-
-    }
-
-    @Override
-    public void setParameters(Map<String, String> keyPairs) {
-
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return null;
-    }
-
-    @Override
-    public String createXml() {
-        // 使用上下文策略：创建通信XML
-        return wxPayModeContext.createXml();
     }
 
 }

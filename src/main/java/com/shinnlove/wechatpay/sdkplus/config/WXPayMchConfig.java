@@ -5,6 +5,7 @@
 package com.shinnlove.wechatpay.sdkplus.config;
 
 import com.shinnlove.wechatpay.sdkplus.enums.WXPayMode;
+import com.shinnlove.wechatpay.sdkplus.enums.WXPaySignType;
 
 /**
  * 微信支付商户配置VO。
@@ -47,9 +48,12 @@ public class WXPayMchConfig {
     /** 微信支付种类：0是普通商户、1是服务商模式 */
     private WXPayMode payMode;
 
+    /** 微信支付签名类型：1是MD5（默认类型）、2是HMACSHA256 */
+    private WXPaySignType signType;
+
     /**
      * 构造函数。
-     *
+     * 
      * @param mchId
      * @param subMchId
      * @param appId
@@ -61,10 +65,12 @@ public class WXPayMchConfig {
      * @param sslkeyPath
      * @param rootcaPem
      * @param payMode
+     * @param signType
      */
     public WXPayMchConfig(String mchId, String subMchId, String appId, String subAppId,
                           String appSecret, String apiKey, String certP12, String sslcertPath,
-                          String sslkeyPath, String rootcaPem, WXPayMode payMode) {
+                          String sslkeyPath, String rootcaPem, WXPayMode payMode,
+                          WXPaySignType signType) {
         this.mchId = mchId;
         this.subMchId = subMchId;
         this.appId = appId;
@@ -76,7 +82,9 @@ public class WXPayMchConfig {
         this.sslkeyPath = sslkeyPath;
         this.rootcaPem = rootcaPem;
         this.payMode = payMode;
+        this.signType = signType;
     }
+
 
     /**
      * Getter method for property mchId.
@@ -274,6 +282,24 @@ public class WXPayMchConfig {
      */
     public void setPayMode(WXPayMode payMode) {
         this.payMode = payMode;
+    }
+
+    /**
+     * Getter method for property signType.
+     *
+     * @return property value of signType
+     */
+    public WXPaySignType getSignType() {
+        return signType;
+    }
+
+    /**
+     * Setter method for property signType.
+     *
+     * @param signType value to be assigned to property signType
+     */
+    public void setSignType(WXPaySignType signType) {
+        this.signType = signType;
     }
 
 }

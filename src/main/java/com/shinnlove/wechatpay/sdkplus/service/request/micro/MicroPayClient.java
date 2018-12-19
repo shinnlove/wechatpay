@@ -4,6 +4,8 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.request.micro;
 
+import java.util.Map;
+
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
 import com.shinnlove.wechatpay.sdkplus.service.request.base.WXPayRequestClient;
 
@@ -22,6 +24,16 @@ public class MicroPayClient extends WXPayRequestClient {
      */
     public MicroPayClient(WXPayMchConfig wxPayMchConfig) {
         super(wxPayMchConfig);
+    }
+
+    @Override
+    public void fillRequestDetailParams(Map<String, String> keyPairs) {
+
+    }
+
+    @Override
+    public void checkParameters(Map<String, String> keyPairs) throws Exception {
+
     }
 
 }

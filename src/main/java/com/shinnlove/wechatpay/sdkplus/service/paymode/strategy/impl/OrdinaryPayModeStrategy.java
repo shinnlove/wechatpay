@@ -4,10 +4,16 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.impl;
 
+import java.util.Map;
+
+import com.shinnlove.wechatpay.sdk.utils.WXPayUtil;
+import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
+import com.shinnlove.wechatpay.sdkplus.consts.WXPayConstants;
+import com.shinnlove.wechatpay.sdkplus.enums.WXPaySignType;
 import com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.WXPayModeStrategy;
 
 /**
- * 普通商户模式支付策略。
+ * 微信支付——普通商户模式支付策略。
  *
  * @author shinnlove.jinsheng
  * @version $Id: OrdinaryPayModeStrategy.java, v 0.1 2018-12-18 下午5:03 shinnlove.jinsheng Exp $$
@@ -15,8 +21,22 @@ import com.shinnlove.wechatpay.sdkplus.service.paymode.strategy.WXPayModeStrateg
 public class OrdinaryPayModeStrategy implements WXPayModeStrategy {
 
     @Override
-    public String createXml() {
-        return null;
+    public void fillRequestMainBodyParams(WXPayMchConfig wxPayMchConfig,
+                                          final Map<String, String> payParameters) throws Exception {
+        payParameters.put(WXPayConstants.APPID, wxPayMchConfig.getAppId());
+        payParameters.put(WXPayConstants.MCH_ID, wxPayMchConfig.getMchId());
+        payParameters.put(WXPayConstants.NONCE_STR, WXPayUtil.generateUUID());
+        // 验签方式
+        if (WXPaySignType.MD5.equals(wxPayMchConfig.getSignType())) {
+            // MD5
+            payParameters.put(WXPayConstants.SIGN_TYPE, WXPayConstants.MD5);
+        } else if (WXPaySignType.HMACSHA256.equals(wxPayMchConfig.getSignType())) {
+            // HMACSHA256
+            payParameters.put(WXPayConstants.SIGN_TYPE, WXPayConstants.HMACSHA256);
+        }
+        String sign = WXPayUtil.generateSignature(payParameters, wxPayMchConfig.getApiKey(),
+            wxPayMchConfig.getSignType());
+        payParameters.put(WXPayConstants.SIGN, sign);
     }
 
 }
