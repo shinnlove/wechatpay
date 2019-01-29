@@ -4,8 +4,6 @@
  */
 package com.shinnlove.wechatpay.sdkplus.service.response.scan;
 
-import java.util.Map;
-
 import com.shinnlove.wechatpay.sdkplus.config.WXPayMchConfig;
 import com.shinnlove.wechatpay.sdkplus.service.client.AbstractWXPayClient;
 
@@ -26,14 +24,14 @@ public class WXNativePayClient extends AbstractWXPayClient {
         super(wxPayMchConfig);
     }
 
-    @Override
-    public void doBizSuccess(Map<String, String> responseData) throws Exception {
-        // 原生扫码业务成功
-    }
-
-    @Override
-    public void doBizFail(Map<String, String> responseData) throws Exception {
-        // 原生扫码业务失败
-    }
+    //    @Override
+    //    public void doBizSuccess(Map<String, String> responseData) throws Exception {
+    //        // 原生扫码业务成功
+    //    }
+    //
+    //    @Override
+    //    public void doBizFail(Map<String, String> responseData) throws Exception {
+    //        // 原生扫码业务失败
+    //    }
 
 }
