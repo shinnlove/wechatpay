@@ -64,7 +64,7 @@ public class RequestForImages {
         String theme = getTheme(url);
         String requestURL = getRealURL(url, current);
 
-        System.out.println("第" + current + "次请求url=" + requestURL + "获取最大页数");
+        System.out.println("扫描第" + current + "页请求url=" + requestURL + "获取最大页数");
 
         // 利用JSoup获得连接
         Connection connect = Jsoup.connect(requestURL);
@@ -140,7 +140,7 @@ public class RequestForImages {
 
         // 每根线程下载一页
         for (String s : imageList) {
-            downImages(s, savePath);
+            downImages(s, savePath + getTheme(url) + "/");
         }
 
         return imageList;
