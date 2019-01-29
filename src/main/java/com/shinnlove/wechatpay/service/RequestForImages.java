@@ -31,7 +31,7 @@ public class RequestForImages {
 
     public static void main(String[] args) {
 
-        String article = "https://2019zfl.com/xiurenwang/2018/1016/5957.html";
+        String article = "https://2019zfl.com/luyilu/2018/0825/5701.html";
         if (args.length > 0) {
             article = args[0];
             if (article.indexOf("https://2019zfl.com") < 0) {
