@@ -30,8 +30,21 @@ import com.shinnlove.wechatpay.http.diy.PoolingHttpClient;
 public class RequestForImages {
 
     public static void main(String[] args) {
+
+        String article = "https://2019zfl.com/luyilu/2018/0825/5701.html";
+        if (args.length > 0) {
+            article = args[0];
+            if (article.indexOf("https://2019zfl.com/luyilu") <= 0) {
+                System.out.println("本程序仅针对网址：https://2019zfl.com/luyilu才能下载图片");
+                return;
+            }
+
+            // 修正不是第一页
+            article = getFirstPage(article);
+        }
+
         // 要请求的图片首页
-        final String url = "https://2019zfl.com/luyilu/2018/0825/5701.html";
+        final String url = article;
 
         // 从第一页开始请求
         int total = requestForPages(url, 1);
@@ -148,6 +161,23 @@ public class RequestForImages {
             str = str.substring(0, pos);
         }
         return str;
+    }
+
+    /**
+     * 获取每个帖子第一页。
+     *
+     * @param url
+     * @return
+     */
+    private static String getFirstPage(String url) {
+        int start = url.lastIndexOf('/');
+        int end = url.lastIndexOf('.');
+
+        // 要提取这个/
+        String urlPrefix = url.substring(0, start + 1);
+        String urlSuffix = url.substring(end);
+        String firstPage = urlPrefix + getTheme(url) + urlSuffix;
+        return firstPage;
     }
 
     /**
