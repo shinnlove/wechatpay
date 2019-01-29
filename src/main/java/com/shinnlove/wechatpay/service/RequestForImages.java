@@ -7,8 +7,6 @@ package com.shinnlove.wechatpay.service;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
 
 import org.apache.http.HttpEntity;
@@ -35,13 +33,10 @@ public class RequestForImages {
     private static final ExecutorService       commonExecutor   = Executors.newCachedThreadPool();
 
     /** 下载图片线程池 */
-    private static final ExecutorService       downloadExecutor = Executors.newFixedThreadPool(200);
-
-    /** 最多允许等待下载文章队列 */
-    private static final BlockingQueue<String> searchQueue      = new LinkedBlockingQueue<>(30);
+    private static final ExecutorService       downloadExecutor = Executors.newFixedThreadPool(300);
 
     /** 下载文章队列 */
-    private static final BlockingQueue<String> downloadQueue    = new LinkedBlockingQueue<>(50);
+    private static final BlockingQueue<String> downloadQueue    = new LinkedBlockingQueue<>(800);
 
     public static void main(String[] args) {
 
@@ -59,8 +54,8 @@ public class RequestForImages {
             article = getFirstPage(article);
         }
 
-        // 启动搜索生产者
-        requestForRelate(article);
+        // 所有文章
+        pickUp();
 
         // 启动检索消费者
         startUpRequest();
@@ -70,12 +65,61 @@ public class RequestForImages {
         //        downloadExecutor.shutdown();
     }
 
+    public static void pickUp() {
+        commonExecutor.submit(() -> {
+            for (int i = 1; i <= 50; i++) {
+                String url = DOMAIN_NAME + "/page/" + i + ".html";
+                searchOneNav(url);
+            }
+        });
+    }
+
+    public static void searchOneNav(String navURL) {
+        Connection connect = Jsoup.connect(navURL);
+        try {
+            // 得到Document对象
+            Document document = connect.get();
+
+            // 找到推荐帖
+            Elements navs = document.getElementsByClass("content-wrap");
+            Element wrap = navs.get(0);
+            Elements contents = wrap.getElementsByClass("content");
+            Element content = contents.get(0);
+
+            // 每一篇文章
+            Elements excerpts = content.getElementsByClass("excerpt-one");
+            for (Element one : excerpts) {
+                Elements h2s = one.getElementsByTag("h2");
+                Element h2 = h2s.get(0);
+
+                Elements links = h2.getElementsByTag("a");
+                Element a = links.get(0);
+
+                String urlSuffix = a.attr("href");
+
+                String fullURL = DOMAIN_NAME + urlSuffix;
+
+                try {
+                    downloadQueue.put(fullURL);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            // 出错就默认页数无效
+        }
+
+    }
+
     /**
      * 启动检索消费者。
      */
     public static void startUpRequest() {
         // 20个消费者开始消费队列中文章
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 30; i++) {
             commonExecutor.submit(() -> downloadTask());
         }
     }
@@ -109,49 +153,6 @@ public class RequestForImages {
     }
 
     /**
-     * 向队列中加入文章，并且起10个线程不停搜索相关文章。
-     *
-     * @param startURL
-     */
-    public static void requestForRelate(String startURL) {
-        // 第一次加直接add
-        searchQueue.add(startURL);
-        downloadQueue.add(startURL);
-        // 特别注意：线程数量不要太多，否则要搜索文章指数级增长
-        for (int i = 0; i < 2; i++) {
-            commonExecutor.submit(() -> searchTask());
-        }
-    }
-
-    /**
-     * 某根线程任务，从队列中取文章并且搜索、等待。
-     */
-    public static void searchTask() {
-        while (true) {
-            // 从队列中拿
-            String url = "";
-            try {
-                url = searchQueue.take();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // 没有相关文章睡3秒
-            if ("".equalsIgnoreCase(url)) {
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                continue;
-            }
-
-            // 有文章
-            searchRelateAndPut(url);
-        }
-    }
-
-    /**
      * 找文章的相关链接。
      *
      */
@@ -173,9 +174,8 @@ public class RequestForImages {
 
                 try {
                     // 加入搜索队列
-                    boolean searchResult = searchQueue.offer(fullURL, 10, TimeUnit.SECONDS);
                     boolean downloadResult = downloadQueue.offer(fullURL, 10, TimeUnit.SECONDS);
-                    if (!searchResult) {
+                    if (!downloadResult) {
                         // 加不进去就等待10秒
                         TimeUnit.SECONDS.sleep(10);
                     }
@@ -250,6 +250,12 @@ public class RequestForImages {
                 }
             }
 
+            if (max > 50) {
+                // 超过50页说明可能请求到主页去了，直接返回
+                return 50;
+            }
+
+            // 检查是否有最后一页
             Elements nextList = document.getElementsByClass("next-page");
             if (nextList.size() == 0) {
                 // 最后一页最大的page
@@ -262,7 +268,7 @@ public class RequestForImages {
         } catch (IOException e) {
             e.printStackTrace();
             // 出错就默认页数无效
-            return 0;
+            return 1;
         }
     }
 
@@ -274,9 +280,7 @@ public class RequestForImages {
      * @param savePath
      * @return
      */
-    public static List<String> requestForImages(String url, int pageNo, String savePath) {
-        List<String> imageList = new ArrayList<>();
-
+    public static void requestForImages(String url, int pageNo, String savePath) {
         String requestURL = getRealURL(url, pageNo);
 
         System.out.println("准备请求url=" + requestURL + " 获取图片。");
@@ -292,19 +296,12 @@ public class RequestForImages {
             Elements images = article.getElementsByTag("img");
             for (Element e : images) {
                 String imageSrc = e.attr("src");
-                imageList.add(imageSrc);
+                downImages(imageSrc, savePath + getTheme(url) + "/");
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // 每根线程下载一页
-        for (String s : imageList) {
-            downImages(s, savePath + getTheme(url) + "/");
-        }
-
-        return imageList;
     }
 
     /**
