@@ -9,8 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import org.apache.http.HttpEntity;
 import org.jsoup.Connection;
@@ -22,20 +21,37 @@ import org.jsoup.select.Elements;
 import com.shinnlove.wechatpay.http.diy.PoolingHttpClient;
 
 /**
- * 下载图片。
+ * 自学习并发下载图片。
  *
  * @author shinnlove.jinsheng
  * @version $Id: RequestForImages.java, v 0.1 2019-01-29 16:03 shinnlove.jinsheng Exp $$
  */
 public class RequestForImages {
 
+    /** 默认域名 */
+    private static final String                DOMAIN_NAME      = "https://2019zfl.com";
+
+    /** 搜索图片线程池 */
+    private static final ExecutorService       commonExecutor   = Executors.newCachedThreadPool();
+
+    /** 下载图片线程池 */
+    private static final ExecutorService       downloadExecutor = Executors.newFixedThreadPool(200);
+
+    /** 最多允许等待下载文章队列 */
+    private static final BlockingQueue<String> searchQueue      = new LinkedBlockingQueue<>(30);
+
+    /** 下载文章队列 */
+    private static final BlockingQueue<String> downloadQueue    = new LinkedBlockingQueue<>(50);
+
     public static void main(String[] args) {
 
-        String article = "https://2019zfl.com/luyilu/2018/0825/5701.html";
+        // 要请求的图片首页
+        String article = DOMAIN_NAME + "/luyilu/2018/0825/5701.html";
+
         if (args.length > 0) {
             article = args[0];
-            if (article.indexOf("https://2019zfl.com") < 0) {
-                System.out.println("本程序仅针对网址：https://2019zfl.com/才能下载图片");
+            if (article.indexOf(DOMAIN_NAME) < 0) {
+                System.out.println("本程序仅针对网址：" + DOMAIN_NAME + "才能下载图片");
                 return;
             }
 
@@ -43,23 +59,160 @@ public class RequestForImages {
             article = getFirstPage(article);
         }
 
-        // 要请求的图片首页
-        final String url = article;
+        // 启动搜索生产者
+        requestForRelate(article);
 
-        // 从第一页开始请求
-        int total = requestForPages(url, 1);
+        // 启动检索消费者
+        startUpRequest();
 
-        System.out.println(total);
-
-        ExecutorService executor = Executors.newFixedThreadPool(total);
-        for (int i = 1; i <= total; i++) {
-            final int pageNo = i;
-            executor.submit(() -> requestForImages(url, pageNo, "./miko/"));
-        }
-
-        executor.shutdown();
+        // 最后优雅的关闭
+        //        commonExecutor.shutdown();
+        //        downloadExecutor.shutdown();
     }
 
+    /**
+     * 启动检索消费者。
+     */
+    public static void startUpRequest() {
+        // 20个消费者开始消费队列中文章
+        for (int i = 0; i < 20; i++) {
+            commonExecutor.submit(() -> downloadTask());
+        }
+    }
+
+    /**
+     * 下载任务。
+     */
+    public static void downloadTask() {
+        while (true) {
+            // 从队列中拿
+            String url = "";
+            try {
+                url = downloadQueue.poll(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // 没有相关文章睡3秒
+            if ("".equalsIgnoreCase(url)) {
+                try {
+                    TimeUnit.SECONDS.sleep(3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+
+            // 有文章开始请求
+            requestForArticle(url);
+        }
+    }
+
+    /**
+     * 向队列中加入文章，并且起10个线程不停搜索相关文章。
+     *
+     * @param startURL
+     */
+    public static void requestForRelate(String startURL) {
+        // 第一次加直接add
+        searchQueue.add(startURL);
+        downloadQueue.add(startURL);
+        // 特别注意：线程数量不要太多，否则要搜索文章指数级增长
+        for (int i = 0; i < 2; i++) {
+            commonExecutor.submit(() -> searchTask());
+        }
+    }
+
+    /**
+     * 某根线程任务，从队列中取文章并且搜索、等待。
+     */
+    public static void searchTask() {
+        while (true) {
+            // 从队列中拿
+            String url = "";
+            try {
+                url = searchQueue.take();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // 没有相关文章睡3秒
+            if ("".equalsIgnoreCase(url)) {
+                try {
+                    TimeUnit.SECONDS.sleep(3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+
+            // 有文章
+            searchRelateAndPut(url);
+        }
+    }
+
+    /**
+     * 找文章的相关链接。
+     *
+     */
+    public static void searchRelateAndPut(String url) {
+        // 利用JSoup获得连接
+        Connection connect = Jsoup.connect(url);
+        try {
+            // 得到Document对象
+            Document document = connect.get();
+
+            // 找到推荐帖
+            Elements navs = document.getElementsByClass("relates");
+            Element nav = navs.get(0);
+            Elements links = nav.getElementsByTag("a");
+
+            for (Element e : links) {
+                String pageSuffix = e.attr("href");
+                String fullURL = DOMAIN_NAME + pageSuffix;
+
+                try {
+                    // 加入搜索队列
+                    boolean searchResult = searchQueue.offer(fullURL, 10, TimeUnit.SECONDS);
+                    boolean downloadResult = downloadQueue.offer(fullURL, 10, TimeUnit.SECONDS);
+                    if (!searchResult) {
+                        // 加不进去就等待10秒
+                        TimeUnit.SECONDS.sleep(10);
+                    }
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            // 出错就默认页数无效
+        }
+    }
+
+    /**
+     * 并发请求某篇文章的图片。
+     *
+     * @param url
+     */
+    public static void requestForArticle(String url) {
+        // 从第一页开始检索帖子有多少页
+        int total = requestForPages(url, 1);
+
+        // 提交下载任务（下载图片交给另外一个线程池）
+        for (int i = 1; i <= total; i++) {
+            final int pageNo = i;
+            downloadExecutor.submit(() -> requestForImages(url, pageNo, "./miko/"));
+        }
+    }
+
+    /**
+     * 查看某个帖子最多有几页。
+     *
+     * @param url
+     * @param current
+     * @return
+     */
     public static int requestForPages(String url, int current) {
         String theme = getTheme(url);
         String requestURL = getRealURL(url, current);
@@ -113,6 +266,14 @@ public class RequestForImages {
         }
     }
 
+    /**
+     * 抽取帖子一页中的图片。
+     *
+     * @param url
+     * @param pageNo
+     * @param savePath
+     * @return
+     */
     public static List<String> requestForImages(String url, int pageNo, String savePath) {
         List<String> imageList = new ArrayList<>();
 
@@ -147,7 +308,7 @@ public class RequestForImages {
     }
 
     /**
-     * 获取帖子主题编号。
+     * 工具类函数：获取帖子主题编号。
      *
      * @param url
      * @return
@@ -164,7 +325,7 @@ public class RequestForImages {
     }
 
     /**
-     * 获取每个帖子第一页。
+     * 工具类函数：获取每个帖子第一页。
      *
      * @param url
      * @return
@@ -181,7 +342,7 @@ public class RequestForImages {
     }
 
     /**
-     * 请求真正url，注意.的位置。
+     * 工具类函数：请求真正url，注意.的位置。
      *
      * @param url
      * @param pageNo
@@ -203,7 +364,7 @@ public class RequestForImages {
     }
 
     /**
-     * 下载图片到指定目录
+     * 工具类函数：下载图片到指定目录。
      *
      * @param imgUrl   图片URL
      * @param filePath 文件路径
