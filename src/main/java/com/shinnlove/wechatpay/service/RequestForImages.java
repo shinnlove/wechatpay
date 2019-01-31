@@ -128,6 +128,7 @@ public class RequestForImages {
         while (true) {
             // 从队列中拿
             String url = "";
+
             try {
                 url = downloadQueue.poll(3, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
@@ -169,16 +170,7 @@ public class RequestForImages {
                 String pageSuffix = e.attr("href");
                 String fullURL = DOMAIN_NAME + pageSuffix;
 
-                try {
-                    // 加入搜索队列
-                    boolean downloadResult = downloadQueue.offer(fullURL, 10, TimeUnit.SECONDS);
-                    if (!downloadResult) {
-                        // 加不进去就等待10秒
-                        TimeUnit.SECONDS.sleep(10);
-                    }
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
+                PostUtil.offerQueueOrWait(downloadQueue, fullURL);
             }
 
         } catch (IOException e) {
