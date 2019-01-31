@@ -87,9 +87,9 @@ public class PoolingHttpClient {
             manager.setDefaultSocketConfig(defaultSocketConfig);
 
             // 整个池子最大连接
-            manager.setMaxTotal(300);
+            manager.setMaxTotal(2000);
             // 每个路由最大连接数
-            manager.setDefaultMaxPerRoute(200);
+            manager.setDefaultMaxPerRoute(2000);
             // 从池子中获取连接时，连接不活跃多长时间需要进行一次验证(Keep-Alive再次请求服务器)
             manager.setValidateAfterInactivity(5 * 1000);
 
