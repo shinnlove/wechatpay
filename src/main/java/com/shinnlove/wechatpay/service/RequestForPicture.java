@@ -16,6 +16,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.shinnlove.wechatpay.util.PostUtil;
+
 /**
  * 利用JSoup请求图片。
  *
@@ -29,7 +31,7 @@ public class RequestForPicture {
     public static void main(String[] args) {
         List<String> images = getImages();
         for (String url : images) {
-            executor.submit(() -> RequestForImages.downImages(url, "./miko/"));
+            executor.submit(() -> PostUtil.downImages(url, "./miko/"));
         }
         executor.shutdown();
     }
