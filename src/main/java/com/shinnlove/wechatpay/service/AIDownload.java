@@ -86,11 +86,11 @@ public class AIDownload {
         searchQueue.offer(article);
 
         // 异步广度优先遍历
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 5; i++) {
             searchExecutor.submit(() -> BFSTravers(searchQueue));
         }
 
-        // 同时消费帖子（消费者差不多是生产者8倍）
+        // 同时消费帖子（起初消费者差不多是生产者8倍，但是后来差不多1:3，重复帖子越来越多）
         for (int j = 0; j < 16; j++) {
             consumeExecutor.submit(() -> preHandlePost(readQueue));
         }
