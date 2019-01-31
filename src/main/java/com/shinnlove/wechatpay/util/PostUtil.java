@@ -74,7 +74,7 @@ public class PostUtil {
     public static void onePageImages(PostPage post, int pageNo) {
         String requestURL = PostUtil.getRealURL(post.getUrl(), pageNo);
 
-        System.out.println("准备请求url=" + requestURL + " 获取图片。");
+        //        System.out.println("准备请求url=" + requestURL + " 获取图片。");
 
         Connection connect = Jsoup.connect(requestURL);
         try {
@@ -105,7 +105,6 @@ public class PostUtil {
         } catch (IOException e) {
             System.out.println("读取帖子url=" + requestURL + "，请求第" + pageNo + "页图片，但是发生网络错误，ex="
                                + e.getMessage());
-            //            e.printStackTrace();
         }
     }
 
@@ -120,7 +119,7 @@ public class PostUtil {
         String theme = PostUtil.getTheme(url);
         String requestURL = PostUtil.getRealURL(url, current);
 
-        System.out.println("扫描第" + current + "页请求url=" + requestURL + "获取最大页数");
+        //        System.out.println("扫描第" + current + "页请求url=" + requestURL + "获取最大页数");
 
         // 利用JSoup获得连接
         Connection connect = Jsoup.connect(requestURL);
@@ -169,7 +168,6 @@ public class PostUtil {
             return requestForPages(url, max);
 
         } catch (IOException e) {
-            System.out.println("当前请求帖子页发生错误，原因是ex=" + e.getMessage());
             // 出错就默认上一次递归获得的页数是最大
             return current;
         }
@@ -274,8 +272,6 @@ public class PostUtil {
             String year = prefix2nd.substring(lastPath3rd + 1);
 
             String picPath = year + "_" + month + "_" + theme;
-
-            System.out.println("帖子图片保存路径是：" + picPath);
 
             return picPath;
         } catch (Exception e) {

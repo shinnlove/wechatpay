@@ -166,8 +166,8 @@ public class AIDownload {
 
         } catch (IOException e) {
             System.out.println("请求帖子url=" + url + "发生了网络错误，原因ex=" + e.getMessage());
-            //            e.printStackTrace();
-            // 出错就默认页数无效
+        } catch (Exception e) {
+            System.out.println("请求帖子url=" + url + "发生了系统错误，原因ex=" + e.getMessage());
         }
     }
 
