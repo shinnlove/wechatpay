@@ -71,7 +71,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.shinnlove.wechatpay.service.RequestForImages</mainClass>
+                            <mainClass>com.shinnlove.wechatpay.service.AIDownload</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
