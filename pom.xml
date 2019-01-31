@@ -61,7 +61,7 @@
     </dependencies>
 
     <build>
-        <finalName>dilraba</finalName>
+        <finalName>miko</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

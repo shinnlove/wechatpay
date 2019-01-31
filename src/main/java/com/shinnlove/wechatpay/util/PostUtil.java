@@ -185,7 +185,7 @@ public class PostUtil {
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
 
             // 构建缓冲区(10KB得读写)
-            byte[] buf = new byte[10240];
+            byte[] buf = new byte[20480];
             int size;
             // 写入到文件
             while (-1 != (size = in.read(buf))) {
