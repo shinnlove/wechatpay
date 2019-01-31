@@ -39,11 +39,11 @@ public class AIDownload {
 
     /** 读取帖子线程池 */
     private static final ExecutorService         readExecutor     = Executors
-                                                                      .newFixedThreadPool(80);
+                                                                      .newFixedThreadPool(100);
 
     /** 下载图片线程池 */
     private static final ExecutorService         downloadExecutor = Executors
-                                                                      .newFixedThreadPool(300);
+                                                                      .newFixedThreadPool(360);
 
     /** 发现文章队列 */
     private static final BlockingQueue<String>   searchQueue      = new LinkedBlockingDeque<>(2000);
@@ -96,7 +96,7 @@ public class AIDownload {
         }
 
         // 开始读取帖子（10个阅读者并发读）
-        for (int k = 0; k < 10; k++) {
+        for (int k = 0; k < 20; k++) {
             readExecutor.submit(() -> readPost());
         }
 
