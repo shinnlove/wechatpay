@@ -7,6 +7,8 @@ package com.shinnlove.wechatpay.util;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.jsoup.Connection;
@@ -50,9 +52,20 @@ public class PostUtil {
             Element article = articles.get(0);
             Elements images = article.getElementsByTag("img");
 
+            // 先读取所有图片
+            List<String> srcList = new ArrayList<>();
             for (Element e : images) {
                 String imageSrc = e.attr("src");
-                PostUtil.downImages(imageSrc, SAVE_PATH + PostUtil.getImagePath(requestURL) + "/");
+                srcList.add(imageSrc);
+            }
+
+            // 再for...try...catch下载（健壮）
+            for (String src : srcList) {
+                try {
+                    PostUtil.downImages(src, SAVE_PATH + PostUtil.getImagePath(requestURL) + "/");
+                } catch (Exception e) {
+                    System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
+                }
             }
 
         } catch (IOException e) {
