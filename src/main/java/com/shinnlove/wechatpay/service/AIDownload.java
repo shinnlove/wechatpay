@@ -57,14 +57,14 @@ public class AIDownload {
     /** 已阅锁 */
     private static final ReentrantLock           readLock         = new ReentrantLock();
 
+    /** 等待阅读帖子队列 */
+    private static final BlockingQueue<String>   readQueue        = new LinkedBlockingDeque<>(2000);
+
     /** 已阅"文章有几页"列表（防止重复检索文章页数） */
     private static final Map<String, Boolean>    readPosts        = new ConcurrentHashMap<>();
 
-    /** 需要每页详细阅读的帖子队列 */
-    private static final BlockingQueue<PostPage> readQueue        = new LinkedBlockingQueue<>(2000);
-
-    /** 下载文章队列 */
-    private static final BlockingQueue<PostPage> downloadQueue    = new LinkedBlockingQueue<>(2000);
+    /** 阅读详情帖子队列 */
+    private static final BlockingQueue<PostPage> detailQueue      = new LinkedBlockingQueue<>(2000);
 
     public static void main(String[] args) {
 
@@ -82,17 +82,17 @@ public class AIDownload {
             article = PostUtil.getFirstPage(article);
         }
 
-        // 初始化文章列表
+        // 初始化搜索列表
         searchQueue.offer(article);
 
         // 异步广度优先遍历
         for (int i = 0; i < 2; i++) {
-            searchExecutor.submit(() -> BFSTravers());
+            searchExecutor.submit(() -> BFSTravers(searchQueue));
         }
 
         // 同时消费帖子（消费者差不多是生产者8倍）
         for (int j = 0; j < 16; j++) {
-            consumeExecutor.submit(() -> preHandlePost(searchQueue));
+            consumeExecutor.submit(() -> preHandlePost(readQueue));
         }
 
         // 开始读取帖子（10个阅读者并发读）
@@ -108,25 +108,25 @@ public class AIDownload {
     /**
      * 从队列中读取一篇文章并搜索相关推荐。
      */
-    public static void BFSTravers() {
+    public static void BFSTravers(final BlockingQueue queue) {
         while (true) {
-            String url = searchQueue.poll();
-            if (url == null) {
+            Object o = queue.poll();
+            if (o == null) {
                 // 没有更多文章了
-                try {
-                    TimeUnit.SECONDS.sleep(5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                PostUtil.sleepForFun(5);
                 continue;
             }
 
+            String url = String.valueOf(o);
             if (searchedURL.containsKey(url)) {
                 // 已搜过
                 continue;
             }
 
-            searchMore(url);
+            // 没搜过让阅读者去看看帖子有几页
+            PostUtil.offerQueueOrWait(readQueue, url);
+
+            searchMore(url, queue);
         }
     }
 
@@ -134,8 +134,9 @@ public class AIDownload {
      * 通过一篇文章找更多相关文章链接。
      *
      * @param url
+     * @param queue 队列带泛参，加入毫无违和感
      */
-    public static void searchMore(String url) {
+    public static void searchMore(String url, final BlockingQueue<String> queue) {
         // 利用JSoup获得连接
         Connection connect = Jsoup.connect(url);
         try {
@@ -159,16 +160,8 @@ public class AIDownload {
                 String pageSuffix = e.attr("href");
                 String fullURL = DOMAIN_NAME + pageSuffix;
 
-                try {
-                    // 加入搜索队列
-                    boolean downloadResult = searchQueue.offer(fullURL, 10, TimeUnit.SECONDS);
-                    if (!downloadResult) {
-                        // 加不进去就等待10秒
-                        TimeUnit.SECONDS.sleep(10);
-                    }
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
+                // 新推荐加入检索队列
+                PostUtil.offerQueueOrWait(queue, fullURL);
             }
 
         } catch (IOException e) {
@@ -179,33 +172,26 @@ public class AIDownload {
     }
 
     /**
-     * 消费者预处理帖子（重复标记、帖子页数）。
+     * 消费者预处理帖子（重复标记、帖子页数），把帖子放到详情列表里。
      *
      * @param queue
      */
-    private static void preHandlePost(BlockingQueue queue) {
+    private static void preHandlePost(final BlockingQueue queue) {
         while (true) {
 
             Object o = queue.poll();
-
             if (o == null) {
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                PostUtil.sleepForFun(3);
                 continue;
             }
-
-            System.out.println("线程id=" + Thread.currentThread().getId() + "发现文章" + o);
-
             String url = String.valueOf(o);
+
             if (readPosts.containsKey(url)) {
                 // 已阅
                 continue;
             }
 
-            // 阅读标记
+            // 先标记已阅
             try {
                 readLock.lock();
                 readPosts.put(url, true);
@@ -215,20 +201,10 @@ public class AIDownload {
 
             // 再获取帖子页数（耗时步骤）
             int pages = PostUtil.requestForPages(url, 1);
-            // 构造帖子
             PostPage p = new PostPage(url, pages);
 
-            // 塞入下载队列
-            try {
-                boolean addResult = readQueue.offer(p, 10, TimeUnit.SECONDS);
-                if (!addResult) {
-                    // 加不进去就等待10秒
-                    TimeUnit.SECONDS.sleep(10);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
+            // 塞入图片详细队列
+            PostUtil.offerQueueOrWait(detailQueue, p);
         }
     }
 
@@ -238,23 +214,15 @@ public class AIDownload {
     public static void readPost() {
         while (true) {
 
-            final PostPage post = readQueue.poll();
-
-            // 没有帖子
+            final PostPage post = detailQueue.poll();
             if (post == null) {
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                PostUtil.sleepForFun(3);
                 continue;
             }
 
-            System.out.println("线程id=" + Thread.currentThread().getId() + "准备阅读文章" + post);
-
             int pages = post.getPages();
 
-            // 并发读帖子（特别注意帖子第一页开始）
+            // 并发读帖子（特别注意：帖子第一页开始）
             for (int i = 1; i <= pages; i++) {
                 final int pageNo = i;
                 downloadExecutor.submit(() -> PostUtil.onePageImages(post, pageNo));

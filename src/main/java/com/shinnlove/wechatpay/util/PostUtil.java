@@ -9,6 +9,8 @@ import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.jsoup.Connection;
@@ -30,6 +32,38 @@ public class PostUtil {
 
     /** 图片默认保存路径 */
     private static final String SAVE_PATH = "./miko/";
+
+    /**
+     * 努力尝试10秒放入队列，或者沉睡10秒。
+     *
+     * @param queue
+     * @param data
+     * @param <T>
+     */
+    public static <T> void offerQueueOrWait(BlockingQueue<T> queue, T data) {
+        try {
+            boolean addResult = queue.offer(data, 10, TimeUnit.SECONDS);
+            if (!addResult) {
+                // 加不进去就等待10秒
+                TimeUnit.SECONDS.sleep(10);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 睡睡更健康。
+     *
+     * @param seconds
+     */
+    public static void sleepForFun(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 抽取帖子一页中的图片。
@@ -241,9 +275,11 @@ public class PostUtil {
 
             String picPath = year + "_" + month + "_" + theme;
 
+            System.out.println("帖子图片保存路径是：" + picPath);
+
             return picPath;
         } catch (Exception e) {
-            System.out.println("某帖子路径不合规范，直接用theme代替");
+            System.out.println("某帖子路径不合规范，直接用theme代替，theme=" + theme);
             return theme;
         }
     }
