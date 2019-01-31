@@ -74,7 +74,7 @@ public class PostUtil {
     public static void onePageImages(PostPage post, int pageNo) {
         String requestURL = PostUtil.getRealURL(post.getUrl(), pageNo);
 
-        //        System.out.println("准备请求url=" + requestURL + " 获取图片。");
+        System.out.println("准备请求帖子url=" + requestURL + " 获取图片。");
 
         Connection connect = Jsoup.connect(requestURL);
         try {
@@ -119,7 +119,7 @@ public class PostUtil {
         String theme = PostUtil.getTheme(url);
         String requestURL = PostUtil.getRealURL(url, current);
 
-        //        System.out.println("扫描第" + current + "页请求url=" + requestURL + "获取最大页数");
+        System.out.println("扫描第" + current + "页请求url=" + requestURL + "获取最大页数");
 
         // 利用JSoup获得连接
         Connection connect = Jsoup.connect(requestURL);
@@ -227,9 +227,9 @@ public class PostUtil {
         } catch (MalformedURLException e) {
             System.out.println("下载帖子发生缓冲区错误，原因是ex=" + e.getMessage());
         } catch (IOException e) {
-            System.out.println("下载帖子图片网络错误，原因是ex=" + e.getMessage());
+            System.out.println("下载帖子图片磁盘文件读写错误，原因是ex=" + e.getMessage());
         } catch (Exception e) {
-            System.out.println("下载帖子图片发生错误，原因是ex=" + e.getMessage());
+            System.out.println("下载帖子图片网络错误，原因是ex=" + e.getMessage());
         }
 
     }

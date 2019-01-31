@@ -5,6 +5,7 @@
 package com.shinnlove.wechatpay.http.diy;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
@@ -170,8 +171,12 @@ public class PoolingHttpClient {
             //执行请求
             HttpResponse response = httpClient.execute(hGet);
             entity = response.getEntity();
+        } catch (SocketTimeoutException e) {
+            System.out.println("pooling连接池发生套接字读取错误，ex=" + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("pooling连接池发生套接字IO读取错误，ex=" + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("pooling连接池发生系统错误，ex=" + e.getMessage());
         }
 
         return entity;

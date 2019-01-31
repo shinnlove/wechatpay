@@ -61,7 +61,7 @@
     </dependencies>
 
     <build>
-        <finalName>miko</finalName>
+        <finalName>mikoplus</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
