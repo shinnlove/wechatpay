@@ -48,13 +48,19 @@ public class AIDownload {
     /** 发现文章队列 */
     private static final BlockingQueue<String>   searchQueue      = new LinkedBlockingDeque<>(2000);
 
-    /** 锁机制 */
-    private static final ReentrantLock           lock             = new ReentrantLock();
+    /** 已搜锁 */
+    private static final ReentrantLock           searchedLock     = new ReentrantLock();
 
-    /** 发现文章列表（防止重复下载） */
-    private static final Map<String, Boolean>    findPosts        = new ConcurrentHashMap<>();
+    /** 已搜文章队列（防止重复搜索） */
+    private static final Map<String, Boolean>    searchedURL      = new ConcurrentHashMap<>();
 
-    /** 需要阅读帖子队列 */
+    /** 已阅锁 */
+    private static final ReentrantLock           readLock         = new ReentrantLock();
+
+    /** 已阅"文章有几页"列表（防止重复检索文章页数） */
+    private static final Map<String, Boolean>    readPosts        = new ConcurrentHashMap<>();
+
+    /** 需要每页详细阅读的帖子队列 */
     private static final BlockingQueue<PostPage> readQueue        = new LinkedBlockingQueue<>(2000);
 
     /** 下载文章队列 */
@@ -64,6 +70,17 @@ public class AIDownload {
 
         // 要请求的图片首页
         String article = DOMAIN_NAME + "/luyilu/2018/0825/5701.html";
+
+        if (args.length > 0) {
+            article = args[0];
+            if (article.indexOf(DOMAIN_NAME) < 0) {
+                System.out.println("本程序仅针对网址：" + DOMAIN_NAME + "才能下载图片");
+                return;
+            }
+
+            // 修正不是第一页
+            article = PostUtil.getFirstPage(article);
+        }
 
         // 初始化文章列表
         searchQueue.offer(article);
@@ -104,6 +121,11 @@ public class AIDownload {
                 continue;
             }
 
+            if (searchedURL.containsKey(url)) {
+                // 已搜过
+                continue;
+            }
+
             searchMore(url);
         }
     }
@@ -124,6 +146,14 @@ public class AIDownload {
             Elements navs = document.getElementsByClass("relates");
             Element nav = navs.get(0);
             Elements links = nav.getElementsByTag("a");
+
+            // 本帖已搜过
+            try {
+                searchedLock.lock();
+                searchedURL.put(url, true);
+            } finally {
+                searchedLock.unlock();
+            }
 
             for (Element e : links) {
                 String pageSuffix = e.attr("href");
@@ -170,17 +200,17 @@ public class AIDownload {
             System.out.println("线程id=" + Thread.currentThread().getId() + "发现文章" + o);
 
             String url = String.valueOf(o);
-            if (findPosts.containsKey(url)) {
-                // 已抓过
+            if (readPosts.containsKey(url)) {
+                // 已阅
                 continue;
             }
 
-            // 先打标
+            // 阅读标记
             try {
-                lock.lock();
-                findPosts.put(url, true);
+                readLock.lock();
+                readPosts.put(url, true);
             } finally {
-                lock.unlock();
+                readLock.unlock();
             }
 
             // 再获取帖子页数（耗时步骤）
@@ -210,6 +240,7 @@ public class AIDownload {
 
             final PostPage post = readQueue.poll();
 
+            // 没有帖子
             if (post == null) {
                 try {
                     TimeUnit.SECONDS.sleep(3);
@@ -219,7 +250,7 @@ public class AIDownload {
                 continue;
             }
 
-            System.out.println("线程id=" + Thread.currentThread().getId() + "阅读文章" + post);
+            System.out.println("线程id=" + Thread.currentThread().getId() + "准备阅读文章" + post);
 
             int pages = post.getPages();
 

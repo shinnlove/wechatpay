@@ -52,7 +52,7 @@ public class PostUtil {
 
             for (Element e : images) {
                 String imageSrc = e.attr("src");
-                PostUtil.downImages(imageSrc, SAVE_PATH + PostUtil.getTheme(requestURL) + "/");
+                PostUtil.downImages(imageSrc, SAVE_PATH + PostUtil.getImagePath(requestURL) + "/");
             }
 
         } catch (IOException e) {
@@ -140,6 +140,7 @@ public class PostUtil {
         if (!dir.exists()) {
             dir.mkdirs();
         }
+
         // 截取图片文件名
         String fileName = imgUrl.substring(imgUrl.lastIndexOf('/') + 1, imgUrl.length());
 
@@ -151,10 +152,16 @@ public class PostUtil {
                      + urlTail.replaceAll("\\+", "\\%20");
 
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            System.out.println("文件名乱码转换错误，ex=" + e.getMessage());
         }
-        // 写出的路径
+
+        // 图片写出的路径
         File file = new File(filePath + File.separator + fileName);
+
+        // 老图不下(除非手动删掉不完整的图片)
+        if (file.exists()) {
+            return;
+        }
 
         try {
             // http文件流
@@ -163,8 +170,9 @@ public class PostUtil {
 
             // 获得文件输出流
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-            // 构建缓冲区(1KB得读写)
-            byte[] buf = new byte[1024];
+
+            // 构建缓冲区(10KB得读写)
+            byte[] buf = new byte[10240];
             int size;
             // 写入到文件
             while (-1 != (size = in.read(buf))) {
@@ -172,9 +180,11 @@ public class PostUtil {
             }
             out.close();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            System.out.println("下载帖子发生缓冲区错误，原因是ex=" + e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("下载帖子图片网络错误，原因是ex=" + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("下载帖子图片发生错误，原因是ex=" + e.getMessage());
         }
 
     }
@@ -194,6 +204,35 @@ public class PostUtil {
             str = str.substring(0, pos);
         }
         return str;
+    }
+
+    /**
+     * 按帖子年月帖子编号来命名文件夹，防止重复。
+     *
+     * @param url 
+     * @return
+     */
+    public static String getImagePath(String url) {
+        String theme = getTheme(url);
+
+        try {
+            int lastPath = url.lastIndexOf('/');
+            String prefix = url.substring(0, lastPath);
+
+            int lastPath2nd = prefix.lastIndexOf('/');
+            String month = prefix.substring(lastPath2nd + 1);
+            String prefix2nd = prefix.substring(0, lastPath2nd);
+
+            int lastPath3rd = prefix2nd.lastIndexOf('/');
+            String year = prefix2nd.substring(lastPath3rd + 1);
+
+            String picPath = year + "_" + month + "_" + theme;
+
+            return picPath;
+        } catch (Exception e) {
+            System.out.println("某帖子路径不合规范，直接用theme代替");
+            return theme;
+        }
     }
 
     /**

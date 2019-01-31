@@ -96,11 +96,11 @@ public class PoolingHttpClient {
             // 默认请求配置
             RequestConfig defaultRequestConfig = RequestConfig.custom()
             // 连接超时时间
-                .setConnectTimeout(2 * 1000)
+                .setConnectTimeout(5 * 1000)
                 // 等待数据读取(SocketReadTimeOut)时间
-                .setSocketTimeout(5 * 1000)
+                .setSocketTimeout(10 * 1000)
                 // 从池子中获取连接等待超时时间
-                .setConnectionRequestTimeout(2000).build();
+                .setConnectionRequestTimeout(3000).build();
 
             httpClient = HttpClients
             // 自定义创建
