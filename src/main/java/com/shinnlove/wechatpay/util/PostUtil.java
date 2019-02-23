@@ -31,7 +31,96 @@ import com.shinnlove.wechatpay.model.PostPage;
 public class PostUtil {
 
     /** 图片默认保存路径 */
-    private static final String SAVE_PATH = "./miko/";
+    private static final String SAVE_PATH                = "./miko/";
+
+    /** 默认域名 */
+    private static final String DOMAIN_NAME              = "https://zfl2019.com";
+
+    /** 秀人主页目录 */
+    private static final String XIUREN_CATALOG_PREFIX    = DOMAIN_NAME + "/xiurenwang/list_14_";
+
+    /** 推荐主页目录前缀 */
+    private static final String RECOMMEND_CATALOG_PREFIX = DOMAIN_NAME + "/page/";
+
+    /** 页面后缀 */
+    private static final String URL_SUFFIX               = ".html";
+
+    /**
+     * 获取域名。
+     *
+     * @return
+     */
+    public static String getDomainName() {
+        return DOMAIN_NAME;
+    }
+
+    /**
+     * 推荐目录50页。
+     *
+     * @param page
+     * @return
+     */
+    public static String getRecommendCatelog(int page) {
+        return RECOMMEND_CATALOG_PREFIX + page + URL_SUFFIX;
+    }
+
+    /**
+     * 秀人网目录128页。
+     *
+     * @param page
+     * @return
+     */
+    public static String getXiuRenCatelog(int page) {
+        return XIUREN_CATALOG_PREFIX + page + URL_SUFFIX;
+    }
+
+    /**
+     * 找出某个目录下的帖子地址。
+     *
+     * @param domainName    域名
+     * @param navURL        要搜索的目录地址
+     * @param queue         要放入的队列
+     */
+    public static void searchCataLog(String domainName, String navURL,
+                                     final BlockingQueue<String> queue) {
+        Connection connect = Jsoup.connect(navURL);
+        try {
+            // 得到Document对象
+            Document document = connect.get();
+
+            // 找到推荐帖
+            Elements navs = document.getElementsByClass("content-wrap");
+            Element wrap = navs.get(0);
+            Elements contents = wrap.getElementsByClass("content");
+            Element content = contents.get(0);
+
+            // 每一篇文章
+            Elements excerpts = content.getElementsByClass("excerpt-one");
+            for (Element one : excerpts) {
+                Elements h2s = one.getElementsByTag("h2");
+                Element h2 = h2s.get(0);
+
+                Elements links = h2.getElementsByTag("a");
+                Element a = links.get(0);
+
+                String urlSuffix = a.attr("href");
+
+                String fullURL = domainName + urlSuffix;
+
+                try {
+                    queue.put(fullURL);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            // 出错就默认页数无效
+        }
+
+    }
 
     /**
      * 努力尝试10秒放入队列，或者沉睡10秒。

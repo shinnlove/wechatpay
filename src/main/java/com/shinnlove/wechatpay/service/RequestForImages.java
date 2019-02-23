@@ -24,7 +24,7 @@ import com.shinnlove.wechatpay.util.PostUtil;
 public class RequestForImages {
 
     /** 默认域名 */
-    private static final String                DOMAIN_NAME      = "https://2019zfl.com";
+    private static final String                DOMAIN_NAME      = "https://zfl2019.com";
 
     /** 搜索图片线程池 */
     private static final ExecutorService       commonExecutor   = Executors.newCachedThreadPool();
@@ -35,33 +35,36 @@ public class RequestForImages {
     /** 下载文章队列 */
     private static final BlockingQueue<String> downloadQueue    = new LinkedBlockingQueue<>(800);
 
-    public static void main(String[] args) {
+    //    public static void main(String[] args) {
+    //
+    //        // 要请求的图片首页
+    //        String article = DOMAIN_NAME + "/luyilu/2018/0825/5701.html";
+    //
+    //        if (args.length > 0) {
+    //            article = args[0];
+    //            if (article.indexOf(DOMAIN_NAME) < 0) {
+    //                System.out.println("本程序仅针对网址：" + DOMAIN_NAME + "才能下载图片");
+    //                return;
+    //            }
+    //
+    //            // 修正不是第一页
+    //            article = PostUtil.getFirstPage(article);
+    //        }
+    //
+    //        // 所有文章
+    //        pickUp();
+    //
+    //        // 启动检索消费者
+    //        startUpRequest();
+    //
+    //        // 最后优雅的关闭
+    //        //        commonExecutor.shutdown();
+    //        //        downloadExecutor.shutdown();
+    //    }
 
-        // 要请求的图片首页
-        String article = DOMAIN_NAME + "/luyilu/2018/0825/5701.html";
-
-        if (args.length > 0) {
-            article = args[0];
-            if (article.indexOf(DOMAIN_NAME) < 0) {
-                System.out.println("本程序仅针对网址：" + DOMAIN_NAME + "才能下载图片");
-                return;
-            }
-
-            // 修正不是第一页
-            article = PostUtil.getFirstPage(article);
-        }
-
-        // 所有文章
-        pickUp();
-
-        // 启动检索消费者
-        startUpRequest();
-
-        // 最后优雅的关闭
-        //        commonExecutor.shutdown();
-        //        downloadExecutor.shutdown();
-    }
-
+    /**
+     * 站点全局推荐的帖子。
+     */
     public static void pickUp() {
         commonExecutor.submit(() -> {
             for (int i = 1; i <= 50; i++) {
@@ -71,6 +74,16 @@ public class RequestForImages {
         });
     }
 
+    public static void main(String[] args) {
+        String url = "https://zfl2019.com/xiurenwang/list_14_1.html";
+        searchOneNav(url);
+    }
+
+    /**
+     * 找出某个目录下的帖子。
+     *
+     * @param navURL
+     */
     public static void searchOneNav(String navURL) {
         Connection connect = Jsoup.connect(navURL);
         try {

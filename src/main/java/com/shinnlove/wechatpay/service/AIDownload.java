@@ -28,9 +28,6 @@ import com.shinnlove.wechatpay.util.PostUtil;
  */
 public class AIDownload {
 
-    /** 默认域名 */
-    private static final String                  DOMAIN_NAME      = "https://zfl2019.com";
-
     /** 搜索帖子线程池 */
     private static final ExecutorService         searchExecutor   = Executors.newCachedThreadPool();
 
@@ -68,13 +65,15 @@ public class AIDownload {
 
     public static void main(String[] args) {
 
+        final String domainName = PostUtil.getDomainName();
+
         // 要请求的图片首页
-        String article = DOMAIN_NAME + "/luyilu/2018/0825/5701.html";
+        String article = PostUtil.getDomainName() + "/luyilu/2018/0825/5701.html";
 
         if (args.length > 0) {
             article = args[0];
-            if (article.indexOf(DOMAIN_NAME) < 0) {
-                System.out.println("本程序仅针对网址：" + DOMAIN_NAME + "才能下载图片");
+            if (article.indexOf(domainName) < 0) {
+                System.out.println("本程序仅针对网址：" + domainName + "才能下载图片");
                 return;
             }
 
@@ -85,13 +84,29 @@ public class AIDownload {
         // 初始化搜索列表
         searchQueue.offer(article);
 
+        // 推荐目录搜索
+        searchExecutor.submit(() -> {
+            for (int i = 1; i <= 50; i++) {
+                String url = PostUtil.getRecommendCatelog(i);
+                PostUtil.searchCataLog(domainName, url, searchQueue);
+            }
+        });
+
+        // 秀人高质量搜索
+        searchExecutor.submit(() -> {
+            for (int j = 1; j <= 128; j++) {
+                String url = PostUtil.getXiuRenCatelog(j);
+                PostUtil.searchCataLog(domainName, url, searchQueue);
+            }
+        });
+
         // 异步广度优先遍历
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 8; i++) {
             searchExecutor.submit(() -> BFSTravers(searchQueue));
         }
 
         // 同时消费帖子（起初消费者差不多是生产者8倍，但是后来差不多1:3，重复帖子越来越多）
-        for (int j = 0; j < 16; j++) {
+        for (int j = 0; j < 24; j++) {
             consumeExecutor.submit(() -> preHandlePost(readQueue));
         }
 
@@ -158,7 +173,7 @@ public class AIDownload {
 
             for (Element e : links) {
                 String pageSuffix = e.attr("href");
-                String fullURL = DOMAIN_NAME + pageSuffix;
+                String fullURL = PostUtil.getDomainName() + pageSuffix;
 
                 // 新推荐加入检索队列
                 PostUtil.offerQueueOrWait(queue, fullURL);
