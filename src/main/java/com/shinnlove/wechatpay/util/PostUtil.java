@@ -237,6 +237,8 @@ public class PostUtil {
     /**
      * 工具类函数：获取帖子主题编号。
      *
+     * 类似：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html这样的网址，带上了下标，得到的帖子id是4769。
+     *
      * @param url
      * @return
      */
@@ -249,11 +251,6 @@ public class PostUtil {
             str = str.substring(0, pos);
         }
         return str;
-    }
-
-    public static void main(String[] args) {
-        String url = "https://zfl2019.com/xiurenwang/2018/0303/4769_9.html";
-        System.out.println(getImagePath(url));
     }
 
     /**
@@ -305,6 +302,9 @@ public class PostUtil {
     /**
      * 工具类函数：获取每个帖子第一页。
      *
+     * 类似：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html，这样的网址，第一页就是：
+     * https://zfl2019.com/xiurenwang/2018/0303/4769.html，去掉了下划线。
+     *
      * @param url
      * @return
      */
@@ -322,19 +322,23 @@ public class PostUtil {
     /**
      * 工具类函数：请求真正url，注意.的位置。
      *
+     * 类似这样的：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html，
+     * 传入pageNo=3会变成：https://zfl2019.com/xiurenwang/2018/0303/4769_9_3.html
+     * 这里升级版选择先对url进行一个getFirstPage处理。
+     *
      * @param url
      * @param pageNo
      * @return
      */
     public static String getRealURL(String url, int pageNo) {
-        String requestURL = url;
+        String requestURL = getFirstPage(url);
 
         // 第二页开始加下划线
         if (pageNo > 1) {
-            int end = url.lastIndexOf('.');
+            int end = requestURL.lastIndexOf('.');
 
-            String urlPrefix = url.substring(0, end);
-            String urlSuffix = url.substring(end);
+            String urlPrefix = requestURL.substring(0, end);
+            String urlSuffix = requestURL.substring(end);
             requestURL = urlPrefix + "_" + pageNo + urlSuffix;
         }
 
