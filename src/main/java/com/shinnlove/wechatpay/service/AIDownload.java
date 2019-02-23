@@ -43,7 +43,7 @@ public class AIDownload {
                                                                       .newFixedThreadPool(360);
 
     /** 发现文章队列 */
-    private static final BlockingQueue<String>   searchQueue      = new LinkedBlockingDeque<>(2000);
+    private static final BlockingQueue<String>   searchQueue      = new LinkedBlockingDeque<>(9000);
 
     /** 已搜锁 */
     private static final ReentrantLock           searchedLock     = new ReentrantLock();
@@ -55,13 +55,13 @@ public class AIDownload {
     private static final ReentrantLock           readLock         = new ReentrantLock();
 
     /** 等待阅读帖子队列 */
-    private static final BlockingQueue<String>   readQueue        = new LinkedBlockingDeque<>(2000);
+    private static final BlockingQueue<String>   readQueue        = new LinkedBlockingDeque<>(3000);
 
     /** 已阅"文章有几页"列表（防止重复检索文章页数） */
     private static final Map<String, Boolean>    readPosts        = new ConcurrentHashMap<>();
 
     /** 阅读详情帖子队列 */
-    private static final BlockingQueue<PostPage> detailQueue      = new LinkedBlockingQueue<>(2000);
+    private static final BlockingQueue<PostPage> detailQueue      = new LinkedBlockingQueue<>(3000);
 
     public static void main(String[] args) {
 
