@@ -29,7 +29,7 @@ import com.shinnlove.wechatpay.util.PostUtil;
 public class AIDownload {
 
     /** 默认域名 */
-    private static final String                  DOMAIN_NAME      = "https://2019zfl.com";
+    private static final String                  DOMAIN_NAME      = "https://zfl2019.com";
 
     /** 搜索帖子线程池 */
     private static final ExecutorService         searchExecutor   = Executors.newCachedThreadPool();

@@ -251,27 +251,49 @@ public class PostUtil {
         return str;
     }
 
+    public static void main(String[] args) {
+        String url = "https://zfl2019.com/xiurenwang/2018/0303/4769_9.html";
+        System.out.println(getImagePath(url));
+    }
+
     /**
      * 按帖子年月帖子编号来命名文件夹，防止重复。
+     *
+     * 特别注意：后来发现这个网站的帖子不仅只有`luyilu`这样的分类，还有`xiurenwang`、`youguowang`等分类。
+     * 所以存储图片的时候先提取分类、然后是年、月、帖子id，这样存储比较合适。
+     *
+     * 如：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html
+     *
+     * 存储为：xiurenwang/2018_0303_4769，其中xiurenwang是秀人文件夹、后边是整体的帖子信息
      *
      * @param url 
      * @return
      */
     public static String getImagePath(String url) {
+        // 帖子id复用函数
         String theme = getTheme(url);
 
         try {
+            // 然后截取前面部分提取月份
             int lastPath = url.lastIndexOf('/');
             String prefix = url.substring(0, lastPath);
 
-            int lastPath2nd = prefix.lastIndexOf('/');
-            String month = prefix.substring(lastPath2nd + 1);
-            String prefix2nd = prefix.substring(0, lastPath2nd);
+            int lastPathMonth = prefix.lastIndexOf('/');
+            String month = prefix.substring(lastPathMonth + 1);
 
-            int lastPath3rd = prefix2nd.lastIndexOf('/');
-            String year = prefix2nd.substring(lastPath3rd + 1);
+            // 余下的提取年份
+            String prefix2nd = prefix.substring(0, lastPathMonth);
 
-            String picPath = year + "_" + month + "_" + theme;
+            int lastPathYear = prefix2nd.lastIndexOf('/');
+            String year = prefix2nd.substring(lastPathYear + 1);
+
+            // 余下的提取分类
+            String prefix3rd = prefix2nd.substring(0, lastPathYear);
+
+            int lastPathCategory = prefix3rd.lastIndexOf('/');
+            String category = prefix3rd.substring(lastPathCategory + 1);
+
+            String picPath = category + "/" + year + "_" + month + "_" + theme;
 
             return picPath;
         } catch (Exception e) {
