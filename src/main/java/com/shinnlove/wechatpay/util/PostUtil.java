@@ -170,6 +170,14 @@ public class PostUtil {
             // 得到Document对象
             Document document = connect.get();
 
+            // 新增抓取帖子名称
+            String postName = "miko美图";
+            Elements wraps = document.getElementsByClass("content-wrap");
+            Element wrap = wraps.get(0);
+            Elements titles = wrap.getElementsByClass("article-title");
+            Element title = titles.get(0);
+            postName = title.text();
+
             // 先处理图片路径
             Elements articles = document.getElementsByClass("article-content");
             Element article = articles.get(0);
@@ -185,7 +193,8 @@ public class PostUtil {
             // 再for...try...catch下载（健壮）
             for (String src : srcList) {
                 try {
-                    PostUtil.downImages(src, SAVE_PATH + PostUtil.getImagePath(requestURL) + "/");
+                    PostUtil.downImages(src,
+                        SAVE_PATH + PostUtil.getImagePath(requestURL, postName) + "/");
                 } catch (Exception e) {
                     System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
                 }
@@ -194,6 +203,8 @@ public class PostUtil {
         } catch (IOException e) {
             System.out.println("读取帖子url=" + requestURL + "，请求第" + pageNo + "页图片，但是发生网络错误，ex="
                                + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("帖子下载图片的时候发生错误，ex=" + e.getMessage());
         }
     }
 
@@ -352,10 +363,11 @@ public class PostUtil {
      *
      * 存储为：xiurenwang/2018_0303_4769，其中xiurenwang是秀人文件夹、后边是整体的帖子信息
      *
-     * @param url 
+     * @param url
+     * @param postName
      * @return
      */
-    public static String getImagePath(String url) {
+    public static String getImagePath(String url, String postName) {
         // 帖子id复用函数
         String theme = getTheme(url);
 
@@ -379,12 +391,12 @@ public class PostUtil {
             int lastPathCategory = prefix3rd.lastIndexOf('/');
             String category = prefix3rd.substring(lastPathCategory + 1);
 
-            String picPath = category + "/" + year + "_" + month + "_" + theme;
+            String picPath = category + "/" + year + "_" + month + "_" + theme + "_" + postName;
 
             return picPath;
         } catch (Exception e) {
-            System.out.println("某帖子路径不合规范，直接用theme代替，theme=" + theme);
-            return theme;
+            System.out.println("某帖子路径不合规范，直接用theme代替，theme=" + theme + "_" + postName);
+            return theme + postName;
         }
     }
 
