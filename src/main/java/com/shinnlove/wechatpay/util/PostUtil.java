@@ -194,7 +194,7 @@ public class PostUtil {
             for (String src : srcList) {
                 try {
                     PostUtil.downImages(src,
-                        SAVE_PATH + PostUtil.getImagePath(requestURL, postName) + "/");
+                        SAVE_PATH + PostUtil.getImagePath(requestURL, postName, pageNo) + "/");
                 } catch (Exception e) {
                     System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
                 }
@@ -363,11 +363,12 @@ public class PostUtil {
      *
      * 存储为：xiurenwang/2018_0303_4769，其中xiurenwang是秀人文件夹、后边是整体的帖子信息
      *
-     * @param url
+     * @param url      
      * @param postName
+     * @param pageNo
      * @return
      */
-    public static String getImagePath(String url, String postName) {
+    public static String getImagePath(String url, String postName, int pageNo) {
         // 帖子id复用函数
         String theme = getTheme(url);
 
@@ -391,7 +392,17 @@ public class PostUtil {
             int lastPathCategory = prefix3rd.lastIndexOf('/');
             String category = prefix3rd.substring(lastPathCategory + 1);
 
-            String picPath = category + "/" + year + "_" + month + "_" + theme + "_" + postName;
+            // 帖子title加上了页数，特殊处理
+            String name = postName;
+            if (pageNo > 1 && pageNo < 10) {
+                name = postName.substring(0, postName.length() - 3);
+            } else if (pageNo >= 10 && pageNo <= 99) {
+                name = postName.substring(0, postName.length() - 4);
+            } else if (pageNo >= 100 && pageNo <= 999) {
+                name = postName.substring(0, postName.length() - 5);
+            }
+
+            String picPath = category + "/" + year + "_" + month + "_" + theme + "_" + name;
 
             return picPath;
         } catch (Exception e) {
