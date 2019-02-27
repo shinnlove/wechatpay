@@ -164,7 +164,7 @@ public class AIDownload {
         Connection connect = Jsoup.connect(url);
         try {
             // 得到Document对象
-            Document document = connect.get();
+            Document document = connect.timeout(30000).get();
 
             // 找到推荐帖
             Elements navs = document.getElementsByClass("relates");

@@ -47,7 +47,7 @@ public class RequestForPicture {
         Connection connect = Jsoup.connect("https://www.haorenka.cc/mikojiang.html");
         try {
             // 得到Document对象
-            Document document = connect.get();
+            Document document = connect.timeout(30000).get();
 
             // 只要第一篇帖子内容
             Elements contents = document.getElementsByClass("entry-content");

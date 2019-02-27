@@ -99,7 +99,7 @@ public class PostUtil {
         Connection connect = Jsoup.connect(navURL);
         try {
             // 得到Document对象
-            Document document = connect.get();
+            Document document = connect.timeout(30000).get();
 
             // 找到推荐帖
             Elements navs = document.getElementsByClass("content-wrap");
@@ -181,7 +181,7 @@ public class PostUtil {
         Connection connect = Jsoup.connect(requestURL);
         try {
             // 得到Document对象
-            Document document = connect.get();
+            Document document = connect.timeout(30000).get();
 
             // 新增抓取帖子名称
             String postName = "miko美图";
@@ -238,7 +238,7 @@ public class PostUtil {
         Connection connect = Jsoup.connect(requestURL);
         try {
             // 得到Document对象
-            Document document = connect.get();
+            Document document = connect.timeout(30000).get();
 
             // 再处理下一页
             Elements navs = document.getElementsByClass("pagination");
