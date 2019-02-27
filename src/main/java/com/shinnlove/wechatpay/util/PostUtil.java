@@ -39,6 +39,9 @@ public class PostUtil {
     /** 秀人主页目录 */
     private static final String XIUREN_CATALOG_PREFIX    = DOMAIN_NAME + "/xiurenwang/list_14_";
 
+    /** 尤果网主页目录 */
+    private static final String UGIRLS_CATALOG_PREFIX    = DOMAIN_NAME + "/youguowang/list_9_";
+
     /** 推荐主页目录前缀 */
     private static final String RECOMMEND_CATALOG_PREFIX = DOMAIN_NAME + "/page/";
 
@@ -72,6 +75,16 @@ public class PostUtil {
      */
     public static String getXiuRenCatelog(int page) {
         return XIUREN_CATALOG_PREFIX + page + URL_SUFFIX;
+    }
+
+    /**
+     * 尤果网目录24页。
+     *
+     * @param page
+     * @return
+     */
+    public static String getUGirlsCatelog(int page) {
+        return UGIRLS_CATALOG_PREFIX + page + URL_SUFFIX;
     }
 
     /**
@@ -394,12 +407,14 @@ public class PostUtil {
 
             // 帖子title加上了页数，特殊处理
             String name = postName;
-            if (pageNo > 1 && pageNo < 10) {
-                name = postName.substring(0, postName.length() - 3);
-            } else if (pageNo >= 10 && pageNo <= 99) {
-                name = postName.substring(0, postName.length() - 4);
-            } else if (pageNo >= 100 && pageNo <= 999) {
-                name = postName.substring(0, postName.length() - 5);
+            if (postName.length() >= 3) {
+                if (pageNo > 1 && pageNo < 10) {
+                    name = postName.substring(0, postName.length() - 3);
+                } else if (pageNo >= 10 && pageNo <= 99) {
+                    name = postName.substring(0, postName.length() - 4);
+                } else if (pageNo >= 100 && pageNo <= 999) {
+                    name = postName.substring(0, postName.length() - 5);
+                }
             }
 
             String picPath = category + "/" + year + "_" + month + "_" + theme + "_" + name;

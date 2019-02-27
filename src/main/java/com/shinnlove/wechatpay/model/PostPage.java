@@ -22,7 +22,13 @@ public class PostPage implements Serializable {
     /** uuid */
     private static final long serialVersionUID = -7182514722081110849L;
 
-    /** 帖子地址 */
+    /** 帖子id，以完整分类-年-月-帖子主题编号来确定一篇帖子 */
+    private String            id;
+
+    /** 帖子名 */
+    private String            name;
+
+    /** 帖子首页地址 */
     private String            url;
 
     /** 帖子总共几页 */
@@ -49,6 +55,42 @@ public class PostPage implements Serializable {
     public PostPage(String url, int pages) {
         this.url = url;
         this.pages = pages;
+    }
+
+    /**
+     * Getter method for property id.
+     *
+     * @return property value of id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Setter method for property id.
+     *
+     * @param id value to be assigned to property id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Getter method for property name.
+     *
+     * @return property value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Setter method for property name.
+     *
+     * @param name value to be assigned to property name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
