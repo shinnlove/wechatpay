@@ -146,6 +146,10 @@ public class AIDownload {
                 continue;
             }
 
+            // 多线程-Case2：search队列有9000的容量、阅读队列有3000容量
+            // 搜索的线程在搜索一个新的URL时，如果不能将它顺手加入阅读队列，将忙等10秒，所有线程都会聚集，将影响本来的搜索任务性能
+            // 这里的时间可以短一些，至少比搜索换更多搜索来的短
+
             // 没搜过让阅读者去看看帖子有几页
             PostUtil.offerQueueOrWait(readQueue, url);
 
@@ -171,6 +175,9 @@ public class AIDownload {
             Element nav = navs.get(0);
             Elements links = nav.getElementsByTag("a");
 
+            // 这里请求网络后再做一个hashMap的幂等性、还允许超时时间30秒，如果网络卡，完全不能解决多线程阅读同一帖子狗桩问题
+            // 并发问题-Case1：做事情前没有加锁、做到一半或者做完了才加锁
+
             // 本帖已搜过
             try {
                 searchedLock.lock();
@@ -179,9 +186,19 @@ public class AIDownload {
                 searchedLock.unlock();
             }
 
+            // 持有这些解析元素等了10秒(还好不是一直等)
+            // OOM Case1：持有元素进入忙等、导致OOM
             for (Element e : links) {
                 String pageSuffix = e.attr("href");
                 String fullURL = PostUtil.getDomainName() + pageSuffix;
+
+                // 多线程-Case3：假设1根线程能拿到推荐的8篇帖子、但运行到9000队列满了，加不进去，
+                // 这根线程将有8*10（平均1分钟）的等待时间浪费在——等待队列出队
+                // 而队列怎么会被消费？=>某根搜索线程的1分钟等待过去了，searchMore做完了，回到while(true)开头再继续取出一篇文章来...
+                // Warning：因此当9000队列满了后，若还有大量的文章被搜索到：
+                // 这些搜索线程（目前有8根）将会各自浪费1分钟，然后加不进去队列无情抛弃结果，回头继续消费一个帖子，再又出来8个，只能加进去0~1个，再等待
+                // 结论：当很多文章没有被搜索过、队列满时，搜索线程组几乎进入假死状态，(0/1)*8 的减少搜索帖子队列速度，同时阅读队列几乎被消费空
+                // 代码中前期没有很好的利用网络带宽拉图片和IO读写磁盘存图片
 
                 // 新推荐加入检索队列
                 PostUtil.offerQueueOrWait(queue, fullURL);
