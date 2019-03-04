@@ -19,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.shinnlove.wechatpay.handler.DocumentExtract;
 import com.shinnlove.wechatpay.http.diy.PoolingHttpClient;
 import com.shinnlove.wechatpay.model.PostPage;
 
@@ -96,13 +97,12 @@ public class PostUtil {
      */
     public static void searchCataLog(String domainName, String navURL,
                                      final BlockingQueue<String> queue) {
-        Connection connect = Jsoup.connect(navURL);
-        try {
-            // 得到Document对象
-            Document document = connect.timeout(30000).get();
+        final List<String> urls = new ArrayList<>();
 
+        // 请求并抽取
+        request(navURL, doc -> {
             // 找到推荐帖
-            Elements navs = document.getElementsByClass("content-wrap");
+            Elements navs = doc.getElementsByClass("content-wrap");
             Element wrap = navs.get(0);
             Elements contents = wrap.getElementsByClass("content");
             Element content = contents.get(0);
@@ -118,25 +118,23 @@ public class PostUtil {
 
                 String urlSuffix = a.attr("href");
 
-                String fullURL = domainName + urlSuffix;
-
-                try {
-                    queue.put(fullURL);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
+                urls.add(domainName + urlSuffix);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            // 出错就默认页数无效
-        }
+            return null;
+        });
 
+        for (String url : urls) {
+            try {
+                queue.put(url);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
-     * 努力尝试10秒放入队列，或者沉睡10秒。
+     * 努力尝试10秒放入队列，或者沉睡3秒。
      *
      * @param queue
      * @param data
@@ -147,11 +145,28 @@ public class PostUtil {
             boolean addResult = queue.offer(data, 10, TimeUnit.SECONDS);
             if (!addResult) {
                 // 加不进去就等待10秒
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(3);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 持有锁尝试1秒加入队列数据。
+     *
+     * @param queue
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> boolean tryOfferWithLock(BlockingQueue<T> queue, T data) {
+        try {
+            return queue.offer(data, 1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            System.out.println("尝试加入队列data=" + data + "，被打断，加入未成功");
+        }
+        return false;
     }
 
     /**
@@ -178,46 +193,39 @@ public class PostUtil {
 
         System.out.println("准备请求帖子url=" + requestURL + " 获取图片。");
 
-        Connection connect = Jsoup.connect(requestURL);
-        try {
-            // 得到Document对象
-            Document document = connect.timeout(30000).get();
+        final List<String> pictures = new ArrayList<>();
 
+        String name = request(requestURL, doc -> {
             // 新增抓取帖子名称
             String postName = "miko美图";
-            Elements wraps = document.getElementsByClass("content-wrap");
+            Elements wraps = doc.getElementsByClass("content-wrap");
             Element wrap = wraps.get(0);
             Elements titles = wrap.getElementsByClass("article-title");
             Element title = titles.get(0);
             postName = title.text();
 
             // 先处理图片路径
-            Elements articles = document.getElementsByClass("article-content");
+            Elements articles = doc.getElementsByClass("article-content");
             Element article = articles.get(0);
             Elements images = article.getElementsByTag("img");
 
             // 先读取所有图片
-            List<String> srcList = new ArrayList<>();
             for (Element e : images) {
                 String imageSrc = e.attr("src");
-                srcList.add(imageSrc);
+                pictures.add(imageSrc);
             }
 
-            // 再for...try...catch下载（健壮）
-            for (String src : srcList) {
-                try {
-                    PostUtil.downImages(src,
-                        SAVE_PATH + PostUtil.getImagePath(requestURL, postName, pageNo) + "/");
-                } catch (Exception e) {
-                    System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
-                }
-            }
+            return postName;
+        });
 
-        } catch (IOException e) {
-            System.out.println("读取帖子url=" + requestURL + "，请求第" + pageNo + "页图片，但是发生网络错误，ex="
-                               + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("帖子下载图片的时候发生错误，ex=" + e.getMessage());
+        // 再for...try...catch下载（健壮）
+        for (String src : pictures) {
+            try {
+                PostUtil.downImages(src,
+                    SAVE_PATH + PostUtil.getImagePath(requestURL, name, pageNo) + "/");
+            } catch (Exception e) {
+                System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
+            }
         }
     }
 
@@ -406,7 +414,7 @@ public class PostUtil {
             String category = prefix3rd.substring(lastPathCategory + 1);
 
             // 帖子title加上了页数，特殊处理
-            String name = postName;
+            String name = postName == null ? "miko美图" : postName;
             if (postName.length() >= 3) {
                 if (pageNo > 1 && pageNo < 10) {
                     name = postName.substring(0, postName.length() - 3);
@@ -470,6 +478,33 @@ public class PostUtil {
         }
 
         return requestURL;
+    }
+
+    /**
+     * 公共请求网络的函数，旨在尽早GC掉JSoup对象。
+     *
+     * @param url
+     * @param extract
+     * @param <T>
+     * @return
+     */
+    public static <T> T request(String url, DocumentExtract<T> extract) {
+        // 连接这一步只是设置私有变量，不会出错
+        Connection connect = Jsoup.connect(url);
+        try {
+            // 得到Document对象
+            Document document = connect.timeout(30000).get();
+
+            // 处理文档
+            return extract.pickUp(document);
+
+        } catch (IOException e) {
+            // 出错就默认页数无效
+            System.out.println("请求连接url=" + url + "，发生IO异常，ex=" + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("请求连接url=" + url + "，发生异常，ex=" + e.getMessage());
+        }
+        return null;
     }
 
 }
