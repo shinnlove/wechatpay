@@ -35,16 +35,13 @@ public class RecommendHunter {
     /** 已搜文章队列标记 */
     private final Map<String, Boolean> searchedURL    = new ConcurrentHashMap<>(3000);
 
-    /** 已搜标记锁 */
-    private final ReentrantLock        searchedLock   = new ReentrantLock();
-
     /** 待阅读队列 */
     private BlockingQueue<String>      readQueue;
 
     /** 已加入阅读队列标记 */
     private final Map<String, Boolean> readURL        = new ConcurrentHashMap<>(3000);
 
-    /** 待阅读标记锁 */
+    /** 待阅读标记锁，这把锁是怕在等待加入队列期间发生狗桩问题，有1s的等待时间 */
     private final ReentrantLock        readLock       = new ReentrantLock();
 
     /**
@@ -158,6 +155,7 @@ public class RecommendHunter {
             // 要读吗？
             if (!readURL.containsKey(url)) {
                 try {
+                    // 带锁等待1秒
                     readLock.lock();
 
                     if (!readURL.containsKey(url)) {
@@ -176,17 +174,11 @@ public class RecommendHunter {
                 continue;
             }
 
-            // 狗桩问题
-            try {
-                searchedLock.lock();
-                searchedURL.put(url, true);
-            } finally {
-                searchedLock.unlock();
-            }
-
             // 没搜过就去搜一下
+            searchedURL.putIfAbsent(url, true);
             searchMore(url, queue);
-        }
+
+        } // while
     }
 
     /**

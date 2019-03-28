@@ -35,7 +35,7 @@ public class PostUtil {
     private static final String SAVE_PATH                = "./miko/";
 
     /** 默认域名 */
-    private static final String DOMAIN_NAME              = "https://zfl001.com";
+    private static final String DOMAIN_NAME              = "https://zfl111.com";
 
     /** 秀人主页目录 */
     private static final String XIUREN_CATALOG_PREFIX    = DOMAIN_NAME + "/xiurenwang/list_14_";
