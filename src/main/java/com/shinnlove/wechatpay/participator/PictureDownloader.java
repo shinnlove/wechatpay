@@ -4,11 +4,10 @@
  */
 package com.shinnlove.wechatpay.participator;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import com.shinnlove.wechatpay.model.PostPage;
+import com.shinnlove.wechatpay.util.NamedThreadFactory;
 import com.shinnlove.wechatpay.util.PostUtil;
 
 /**
@@ -19,11 +18,11 @@ import com.shinnlove.wechatpay.util.PostUtil;
  */
 public class PictureDownloader {
 
-    /** 读取帖子线程池 */
-    private static final ExecutorService readExecutor     = Executors.newFixedThreadPool(100);
+    /** 自定义-读取帖子线程池 */
+    private static final ExecutorService readExecutor     = createPool("read-post", 100);
 
-    /** 下载图片线程池 */
-    private static final ExecutorService downloadExecutor = Executors.newFixedThreadPool(360);
+    /** 自定义-下载图片线程池 */
+    private static final ExecutorService downloadExecutor = createPool("download-pic", 360);
 
     /** 帖子详情队列 */
     private BlockingQueue<PostPage>      detailQueue;
@@ -90,6 +89,30 @@ public class PictureDownloader {
     public void stop() {
         readExecutor.shutdown();
         downloadExecutor.shutdown();
+    }
+
+    /**
+     * 创建一个下载线程池。
+     *
+     * 核心线程池30，最大可以增加到100，限制3秒回收，
+     * 等待队列50（为了控制网卡下载速度，最多允许同时进行150个并发请求下载），队列满了就打日志丢弃下载请求。
+     *
+     * @param threadGroupName   自定义线程池线程组的名称
+     * @param maximum           最大线程池数量
+     * @return
+     */
+    private static ThreadPoolExecutor createPool(String threadGroupName, int maximum) {
+        return new ThreadPoolExecutor(30, maximum, 300L, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(50), new NamedThreadFactory(threadGroupName),
+            new RejectedExecutionHandler() {
+                // 自定义拒绝策略，一般打日志
+                @Override
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                    System.out.println("下载请求被抛弃了");
+                    // 可以选择抛出异常，一般选择吃掉
+                    // throw new RejectedExecutionException("下载请求过多被拒绝");
+                }
+            });
     }
 
 }
