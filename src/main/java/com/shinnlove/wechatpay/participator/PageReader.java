@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.shinnlove.wechatpay.model.PostPage;
+import com.shinnlove.wechatpay.util.NamedThreadFactory;
 import com.shinnlove.wechatpay.util.PostUtil;
 
 /**
@@ -20,7 +21,9 @@ import com.shinnlove.wechatpay.util.PostUtil;
 public class PageReader {
 
     /** 阅读帖子线程池 */
-    private final ExecutorService   readExecutor = Executors.newCachedThreadPool();
+    private final ExecutorService   readExecutor = Executors
+                                                     .newCachedThreadPool(new NamedThreadFactory(
+                                                         "read-post"));
 
     /** 等待下载帖子队列 */
     private BlockingQueue<PostPage> detailQueue;

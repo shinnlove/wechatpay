@@ -16,6 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.shinnlove.wechatpay.util.NamedThreadFactory;
 import com.shinnlove.wechatpay.util.PostUtil;
 
 /**
@@ -27,7 +28,9 @@ import com.shinnlove.wechatpay.util.PostUtil;
 public class RecommendHunter {
 
     /** 广度优先搜索帖子线程池 */
-    private final ExecutorService      searchExecutor = Executors.newCachedThreadPool();
+    private final ExecutorService      searchExecutor = Executors
+                                                          .newCachedThreadPool(new NamedThreadFactory(
+                                                              "bfs-search"));
 
     /** 待广度优先搜索文章队列 */
     private BlockingQueue<String>      searchQueue;
