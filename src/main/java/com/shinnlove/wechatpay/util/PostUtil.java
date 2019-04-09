@@ -334,10 +334,10 @@ public class PostUtil {
             HttpEntity entity = PoolingHttpClient.getImagesDownload(imgUrl);
             InputStream in = entity.getContent();
 
-            // 获得文件输出流
+            // 获得文件输出流，带buffer缓冲，避免系统态过多
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
 
-            // 构建缓冲区(10KB得读写)
+            // 构建缓冲区(20KB得读写)
             byte[] buf = new byte[20480];
             int size;
             // 写入到文件
