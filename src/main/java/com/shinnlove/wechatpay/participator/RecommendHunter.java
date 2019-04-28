@@ -89,42 +89,19 @@ public class RecommendHunter {
 
         final String domainName = PostUtil.getDomainName();
 
-        // 推荐主目录搜索
+        // 爱套图港台BeautyLeg目录
         searchExecutor.submit(() -> {
-            for (int i = 1; i <= 50; i++) {
+            for (int i = 1; i <= 37; i++) {
                 try {
-                    String url = PostUtil.getRecommendCatelog(i);
+                    String url = PostUtil.getBeautyLeg(i);
                     PostUtil.searchCataLog(domainName, url, searchQueue);
                 } catch (Exception e) {
-                    System.out.println("主目录搜索遇到问题，第" + i + "页，ex=" + e.getMessage());
+
                 }
             }
         });
 
-        // 秀人高质量搜索
-        searchExecutor.submit(() -> {
-            for (int j = 1; j <= 128; j++) {
-                try {
-                    String url = PostUtil.getXiuRenCatelog(j);
-                    PostUtil.searchCataLog(domainName, url, searchQueue);
-                } catch (Exception e) {
-                    System.out.println("秀人网高质量搜索遇到问题，第" + j + "页，ex=" + e.getMessage());
-                }
-            }
-        });
-
-        // 尤果网童颜..
-        searchExecutor.submit(() -> {
-            for (int k = 1; k <= 24; k++) {
-                try {
-                    String url = PostUtil.getUGirlsCatelog(k);
-                    PostUtil.searchCataLog(domainName, url, searchQueue);
-
-                } catch (Exception e) {
-                    System.out.println("尤果网童颜...搜索遇到问题，第" + k + "页，ex=" + e.getMessage());
-                }
-            }
-        });
+        // 丝袜美女
 
         // 异步广度优先遍历
         for (int i = 0; i < 8; i++) {

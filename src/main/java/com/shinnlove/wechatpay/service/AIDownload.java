@@ -37,7 +37,7 @@ public class AIDownload {
         final String domainName = PostUtil.getDomainName();
 
         // 要请求的图片首页
-        String article = PostUtil.getDomainName() + "/luyilu/2018/0825/5701.html";
+        String article = PostUtil.getDomainName() + "/gangtai/49565.html";
 
         if (args.length > 0) {
             article = args[0];

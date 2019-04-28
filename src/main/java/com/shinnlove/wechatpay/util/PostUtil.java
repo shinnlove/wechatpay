@@ -34,8 +34,11 @@ public class PostUtil {
     /** 图片默认保存路径 */
     private static final String SAVE_PATH                = "./miko/";
 
+    /** 爱套图图片下载目录 */
+    private static final String AITAOTU_PATH             = "./aitaotu/";
+
     /** 默认域名 */
-    private static final String DOMAIN_NAME              = "https://zfl111.com";
+    private static final String DOMAIN_NAME              = "https://www.aitaotu.com";
 
     /** 秀人主页目录 */
     private static final String XIUREN_CATALOG_PREFIX    = DOMAIN_NAME + "/xiurenwang/list_14_";
@@ -48,6 +51,9 @@ public class PostUtil {
 
     /** 页面后缀 */
     private static final String URL_SUFFIX               = ".html";
+
+    /** 爱套图网页后缀是/结尾 */
+    private static final String AITAOTU_SUFFIX           = "/";
 
     /**
      * 获取域名。
@@ -66,6 +72,15 @@ public class PostUtil {
      */
     public static String getRecommendCatelog(int page) {
         return RECOMMEND_CATALOG_PREFIX + page + URL_SUFFIX;
+    }
+
+    /**
+     * 返回爱套图的目录页地址。
+     * 
+     * @return
+     */
+    public static String getBeautyLeg(int page) {
+        return "/search/Beautyleg/" + page + AITAOTU_SUFFIX;
     }
 
     /**
@@ -197,17 +212,28 @@ public class PostUtil {
 
         String name = request(requestURL, doc -> {
             // 新增抓取帖子名称
-            String postName = "miko美图";
-            Elements wraps = doc.getElementsByClass("content-wrap");
-            Element wrap = wraps.get(0);
-            Elements titles = wrap.getElementsByClass("article-title");
-            Element title = titles.get(0);
-            postName = title.text();
+            String postName = "aitaotu美图";
 
-            // 先处理图片路径
-            Elements articles = doc.getElementsByClass("article-content");
-            Element article = articles.get(0);
-            Elements images = article.getElementsByTag("img");
+            // 定位图册标题
+            Elements titles = doc.getElementsByClass("imgtitle");
+            Element title = titles.get(0);
+            Elements h1s = title.getElementsByTag("h1");
+            Element h1 = h1s.get(0);
+            String fullName = h1.text();
+
+            Elements spans = h1.getElementsByTag("span");
+            Element span = spans.get(0);
+            String spanSuffix = span.text();
+
+            postName = fullName.replace(spanSuffix, "");
+            System.out.println(postName);
+
+            // 定位图片DOM
+            Elements wraps = doc.getElementsByClass("big-pic");
+            Element wrap = wraps.get(0);
+            Elements p = wrap.getElementsByTag("p");
+            Element fp = p.get(0);
+            Elements images = fp.getElementsByTag("img");
 
             // 先读取所有图片
             for (Element e : images) {
@@ -222,7 +248,7 @@ public class PostUtil {
         for (String src : pictures) {
             try {
                 PostUtil.downImages(src,
-                    SAVE_PATH + PostUtil.getImagePath(requestURL, name, pageNo) + "/");
+                    AITAOTU_PATH + PostUtil.getThemeImagePath(requestURL, name, pageNo) + "/");
             } catch (Exception e) {
                 System.out.println("某图片下载失败：src=" + src + "，失败原因是ex=" + e.getMessage());
             }
@@ -249,49 +275,42 @@ public class PostUtil {
             Document document = connect.timeout(30000).get();
 
             // 再处理下一页
-            Elements navs = document.getElementsByClass("pagination");
+            Elements navs = document.getElementsByClass("pages");
             Element nav = navs.get(0);
 
             // 所有的image图标（特别注意：max从当前页开始的!!!）
-            int max = current;
             Elements links = nav.getElementsByTag("a");
             for (Element e : links) {
                 // 每一页路径
-                String pageSuffix = e.attr("href");
+                String liInfo = e.text();
 
-                // 页数去掉后缀
-                String ulNo = pageSuffix.replace(".html", "");
-                if (ulNo.indexOf("_") > 1) {
-                    // 大于1页去下划线
-                    ulNo = ulNo.replace(theme + "_", "");
+                if ("末页".equalsIgnoreCase(liInfo)) {
+                    String lastPageURL = getDomainName() + e.attr("href");
+                    System.out.println(lastPageURL);
+
+                    String lastPage = getLastPage(lastPageURL);
+                    try {
+                        return Integer.valueOf(lastPage);
+                    } catch (Exception ex) {
+                        System.out.println("某个图册末页url提取出错：" + ex.getMessage());
+                    }
+
+                    // 爱套图类型的图册如果没有末页就直接默认不下载
+                    return 0;
                 }
 
-                // 取最大页
-                int temp = Integer.valueOf(ulNo);
-                if (temp > max) {
-                    max = temp;
-                }
-            }
-
-            if (max > 50) {
-                // 超过50页说明可能请求到主页去了，直接返回
-                return 50;
-            }
-
-            // 检查是否有最后一页
-            Elements nextList = document.getElementsByClass("next-page");
-            if (nextList.size() == 0) {
-                // 最后一页最大的page
-                return max;
-            }
-
-            // 还有其他页，再递归来一次
-            return requestForPages(url, max);
+            } // for
 
         } catch (IOException e) {
-            // 出错就默认上一次递归获得的页数是最大
-            return current;
+            System.out.println("某个图册请求抓取IO发生错误：" + e.getMessage());
         }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        String imagePath = "https://img.aitaotu.cc:8089/Pics/2019/0413/02/02.jpg";
+        String filePath = "./aitaotu/gangtai/Beautyleg 高跟鞋空姐Neko制服丝袜美女写真高清照片 No.1736/";
+        downImages(imagePath, filePath);
     }
 
     /**
@@ -375,6 +394,23 @@ public class PostUtil {
     }
 
     /**
+     * 直接根据帖子设置图片路径。
+     *
+     * @param url
+     * @param postName
+     * @param pageNo
+     * @return
+     */
+    public static String getThemeImagePath(String url, String postName, int pageNo) {
+        String suffix = url.replace(getDomainName(), "");
+
+        int end = suffix.lastIndexOf("/");
+        String category = suffix.substring(1, end);
+
+        return category + "/" + postName;
+    }
+
+    /**
      * 按帖子年月帖子编号来命名文件夹，防止重复。
      *
      * 特别注意：后来发现这个网站的帖子不仅只有`luyilu`这样的分类，还有`xiurenwang`、`youguowang`等分类。
@@ -440,6 +476,11 @@ public class PostUtil {
      * 类似：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html，这样的网址，第一页就是：
      * https://zfl2019.com/xiurenwang/2018/0303/4769.html，去掉了下划线。
      *
+     * 对于爱套图网站
+     * 
+     * 类似：https://www.aitaotu.com/meinv/36188_8.html，这样的网址第一页是：
+     * https://www.aitaotu.com/meinv/36188.html，去掉了下划线。
+     *
      * @param url
      * @return
      */
@@ -455,11 +496,28 @@ public class PostUtil {
     }
 
     /**
+     * 爱套图网站中给出最后一页，得到最后一页的Number。
+     *
+     * @param lastURL 最后一页URL
+     * @return
+     */
+    public static String getLastPage(String lastURL) {
+        int start = lastURL.lastIndexOf("_");
+        int end = lastURL.lastIndexOf(".");
+
+        return lastURL.substring(start + 1, end);
+    }
+
+    /**
      * 工具类函数：请求真正url，注意.的位置。
      *
      * 类似这样的：https://zfl2019.com/xiurenwang/2018/0303/4769_9.html，
      * 传入pageNo=3会变成：https://zfl2019.com/xiurenwang/2018/0303/4769_9_3.html
      * 这里升级版选择先对url进行一个getFirstPage处理。
+     *
+     * 类似爱套图：https://www.aitaotu.com/meinv/36188_8.html，
+     * 传入pageNo=7会变成：https://www.aitaotu.com/meinv/36188_7.html
+     * 也是可以跨站使用的。
      *
      * @param url
      * @param pageNo
