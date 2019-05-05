@@ -257,7 +257,7 @@ public class PostUtil {
             String spanSuffix = span.text();
 
             postName = fullName.replace(spanSuffix, "");
-            System.out.println(postName);
+            postName = postName.trim();
 
             // 定位图片DOM
             Elements wraps = doc.getElementsByClass("big-pic");
