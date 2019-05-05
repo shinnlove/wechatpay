@@ -381,8 +381,8 @@ public class PostUtil {
             // 获得文件输出流，带buffer缓冲，避免系统态过多
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
 
-            // 构建缓冲区(20KB得读写)
-            byte[] buf = new byte[20480];
+            // 构建缓冲区(500KB得读写)
+            byte[] buf = new byte[51200];
             int size;
             // 写入到文件
             while (-1 != (size = in.read(buf))) {
