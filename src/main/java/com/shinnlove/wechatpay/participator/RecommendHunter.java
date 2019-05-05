@@ -113,6 +113,16 @@ public class RecommendHunter {
             }
         });
 
+        // 丝袜美女
+        searchExecutor.submit(() -> {
+            try {
+                String url = PostUtil.getSilkStocking();
+                PostUtil.searchCataLog(domainName, url, searchQueue);
+            } catch (Exception e) {
+
+            }
+        });
+
         // 国内
         searchExecutor.submit(() -> {
             for (int i = 1; i < 715; i++) {
@@ -122,16 +132,6 @@ public class RecommendHunter {
                 } catch (Exception e) {
 
                 }
-            }
-        });
-
-        // 丝袜美女
-        searchExecutor.submit(() -> {
-            try {
-                String url = PostUtil.getSilkStocking();
-                PostUtil.searchCataLog(domainName, url, searchQueue);
-            } catch (Exception e) {
-
             }
         });
 
