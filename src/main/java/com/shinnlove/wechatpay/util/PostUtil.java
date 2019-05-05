@@ -75,12 +75,42 @@ public class PostUtil {
     }
 
     /**
-     * 返回爱套图的目录页地址。
+     * 返回爱套图的台湾美腿图地址。
      * 
+     * @param page
      * @return
      */
     public static String getBeautyLeg(int page) {
         return "/search/Beautyleg/" + page + AITAOTU_SUFFIX;
+    }
+
+    /**
+     * 返回爱套图的港台美女地址。
+     * 
+     * @param page
+     * @return
+     */
+    public static String getGangTai(int page) {
+        return "/gangtai/list_" + page + URL_SUFFIX;
+    }
+
+    /**
+     * 返回爱套图国内美女地址。
+     * 
+     * @param page
+     * @return
+     */
+    public static String getGuoNei(int page) {
+        return "/guonei/list_" + page + URL_SUFFIX;
+    }
+
+    /**
+     * 返回爱套图丝袜美女地址。
+     * 
+     * @return
+     */
+    public static String getSilkStocking() {
+        return "/zt/mntp/swmntp" + URL_SUFFIX;
     }
 
     /**
@@ -117,18 +147,19 @@ public class PostUtil {
         // 请求并抽取
         request(navURL, doc -> {
             // 找到推荐帖
-            Elements navs = doc.getElementsByClass("content-wrap");
-            Element wrap = navs.get(0);
-            Elements contents = wrap.getElementsByClass("content");
-            Element content = contents.get(0);
+            Elements lbcs = doc.getElementsByClass("listlbc_cont_l");
+            Element lbc = lbcs.get(0);
+            Elements items = lbc.getElementsByClass("item_list");
+            Element item = items.get(0);
+            Elements windows = item.getElementsByClass("masonry_brick");
 
             // 每一篇文章
-            Elements excerpts = content.getElementsByClass("excerpt-one");
-            for (Element one : excerpts) {
-                Elements h2s = one.getElementsByTag("h2");
-                Element h2 = h2s.get(0);
-
-                Elements links = h2.getElementsByTag("a");
+            for (Element window : windows) {
+                Elements shows = window.getElementsByClass("item_t");
+                Element show = shows.get(0);
+                Elements imgs = show.getElementsByClass("img");
+                Element img = imgs.get(0);
+                Elements links = img.getElementsByTag("a");
                 Element a = links.get(0);
 
                 String urlSuffix = a.attr("href");
@@ -305,12 +336,6 @@ public class PostUtil {
             System.out.println("某个图册请求抓取IO发生错误：" + e.getMessage());
         }
         return 0;
-    }
-
-    public static void main(String[] args) {
-        String imagePath = "https://img.aitaotu.cc:8089/Pics/2019/0413/02/02.jpg";
-        String filePath = "./aitaotu/gangtai/Beautyleg 高跟鞋空姐Neko制服丝袜美女写真高清照片 No.1736/";
-        downImages(imagePath, filePath);
     }
 
     /**

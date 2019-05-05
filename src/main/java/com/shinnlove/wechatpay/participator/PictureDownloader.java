@@ -21,11 +21,11 @@ public class PictureDownloader {
 
     /** 自定义-读取帖子线程池 */
     private static final ExecutorService readExecutor     = ThreadPoolUtil.createPool(
-                                                              "extract-pic", 100);
+                                                              "extract-pic", 30);
 
     /** 自定义-下载图片线程池 */
     private static final ExecutorService downloadExecutor = ThreadPoolUtil.createPool(
-                                                              "download-pic", 360);
+                                                              "download-pic", 500);
 
     /** 帖子详情队列 */
     private BlockingQueue<PostPage>      detailQueue;
@@ -57,7 +57,7 @@ public class PictureDownloader {
      */
     public PictureDownloader start() {
         // 开始读取帖子（10个阅读者并发读）
-        for (int k = 0; k < 20; k++) {
+        for (int k = 0; k < 10; k++) {
             readExecutor.submit(() -> readPost());
         }
         return this;

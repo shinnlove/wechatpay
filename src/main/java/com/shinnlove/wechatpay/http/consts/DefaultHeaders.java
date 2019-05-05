@@ -40,7 +40,7 @@ public class DefaultHeaders {
     public static final String CONTENT_TYPE               = "application/json;charset=UTF-8";
 
     /** 请求来源 */
-    public static final String REFERER                    = "http://instasset-zth-2.gz00b.dev.alipay.net/index.htm";
+    public static final String REFERER                    = "https://www.aitaotu.com/gangtai/35216_4.html";
 
     /** 请求主机 */
     public static final String HOST                       = "instasset-zth-2.gz00b.dev.alipay.net";
@@ -49,6 +49,6 @@ public class DefaultHeaders {
     public static final String USER_AGENT                 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36";
 
     /** 默认模拟的Cookie */
-    public static final String COOKIE                     = "_b_s=chensheng.zcs; _b_n=113505; buservice_domain_id=KOUBEI_SALESCRM; IS_INNER_LOGIN=1; UM_distinctid=164174aef2039c-0768eb31a428b8-33667f07-13c680-164174aef21d29; zone=GZ00B; ZAUTH_REST_LOGIN_INFO=7b22666f7277617264223a302c226970223a2231302e3230392e31392e3832222c226c6f67696e4e616d65223a226368656e7368656e672e7a6373222c226c6f67696e54696d65223a313532393633393935323833312c22746f6b656e223a2232373565366562342d393938362d343336662d613261382d333665643635363939343435222c2275726c223a22687474703a2f2f31302e3230392e31392e38322f2f726573742f6765744c6f67696e5573657241757468732e6a736f6e227d; ALIPAYJSESSIONID=GZ00SlixdekHrX3dXUMtTPvAoxkvYFfindecisionGZ00; JSESSIONID=E5AFFE1CB79CD5EA69230BDFD76667D4; ALIPAYBUMNGJSESSIONID=GZ00GKeFLRwC95TjqyFWbxplrqEtmNinstassetGZ00; ctoken=bK1E6Uba3BGcrNb-; session.cookieNameId=ALIPAYBUMNGJSESSIONID; sso.global.authtoken=sso.global.authtoken; _l_n=106809";
+    public static final String COOKIE                     = "_uupv=28; UM_distinctid=1680979f769280-041de7c567e76-10346655-13c680-1680979f76a719; Hm_lvt_3b19253d112290a9184293cf68a02346=1555054302; _uupv=34; CNZZDATA1255139604=69273573-1497769960-%7C1557021275; Hm_lpvt_3b19253d112290a9184293cf68a02346=1557022490";
 
 }

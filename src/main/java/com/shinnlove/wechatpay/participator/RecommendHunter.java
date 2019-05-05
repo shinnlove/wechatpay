@@ -101,7 +101,39 @@ public class RecommendHunter {
             }
         });
 
+        // 港台美腿宝贝
+        searchExecutor.submit(() -> {
+            for (int i = 1; i <= 43; i++) {
+                try {
+                    String url = PostUtil.getGangTai(i);
+                    PostUtil.searchCataLog(domainName, url, searchQueue);
+                } catch (Exception e) {
+
+                }
+            }
+        });
+
+        // 国内
+        searchExecutor.submit(() -> {
+            for (int i = 1; i < 715; i++) {
+                try {
+                    String url = PostUtil.getGuoNei(i);
+                    PostUtil.searchCataLog(domainName, url, searchQueue);
+                } catch (Exception e) {
+
+                }
+            }
+        });
+
         // 丝袜美女
+        searchExecutor.submit(() -> {
+            try {
+                String url = PostUtil.getSilkStocking();
+                PostUtil.searchCataLog(domainName, url, searchQueue);
+            } catch (Exception e) {
+
+            }
+        });
 
         // 异步广度优先遍历
         for (int i = 0; i < 8; i++) {
@@ -173,27 +205,25 @@ public class RecommendHunter {
         PostUtil.request(url, doc -> {
 
             // 找到推荐帖
-            Elements navs = doc.getElementsByClass("relates");
-            Element nav = navs.get(0);
-            Elements links = nav.getElementsByTag("a");
+            Elements recommends = doc.getElementsByClass("ts-tj");
 
             // 这里请求网络后再做一个hashMap的幂等性、还允许超时时间30秒，如果网络卡，完全不能解决多线程阅读同一帖子狗桩问题
             // 并发问题-Case1：做事情前没有加锁、做到一半或者做完了才加锁
 
             // 持有这些解析元素等了10秒(还好不是一直等)
             // OOM Case1：持有元素进入忙等、导致OOM
-            for (Element e : links) {
-                String pageSuffix = e.attr("href");
-                moreList.add(PostUtil.getDomainName() + pageSuffix);
 
-                // 多线程-Case3：假设1根线程能拿到推荐的8篇帖子、但运行到9000队列满了，加不进去，
-                // 这根线程将有8*10（平均1分钟）的等待时间浪费在——等待队列出队
-                // 而队列怎么会被消费？=>某根搜索线程的1分钟等待过去了，searchMore做完了，回到while(true)开头再继续取出一篇文章来...
-                // Warning：因此当9000队列满了后，若还有大量的文章被搜索到：
-                // 这些搜索线程（目前有8根）将会各自浪费1分钟，然后加不进去队列无情抛弃结果，回头继续消费一个帖子，再又出来8个，只能加进去0~1个，再等待
-                // 结论：当很多文章没有被搜索过、队列满时，搜索线程组几乎进入假死状态，(0/1)*8 的减少搜索帖子队列速度，同时阅读队列几乎被消费空
-                // 代码中前期没有很好的利用网络带宽拉图片和IO读写磁盘存图片
+            // 多线程-Case3：假设1根线程能拿到推荐的8篇帖子、但运行到9000队列满了，加不进去，
+            // 这根线程将有8*10（平均1分钟）的等待时间浪费在——等待队列出队
+            // 而队列怎么会被消费？=>某根搜索线程的1分钟等待过去了，searchMore做完了，回到while(true)开头再继续取出一篇文章来...
+            // Warning：因此当9000队列满了后，若还有大量的文章被搜索到：
+            // 这些搜索线程（目前有8根）将会各自浪费1分钟，然后加不进去队列无情抛弃结果，回头继续消费一个帖子，再又出来8个，只能加进去0~1个，再等待
+            // 结论：当很多文章没有被搜索过、队列满时，搜索线程组几乎进入假死状态，(0/1)*8 的减少搜索帖子队列速度，同时阅读队列几乎被消费空
+            // 代码中前期没有很好的利用网络带宽拉图片和IO读写磁盘存图片
 
+            for (Element recommend : recommends) {
+                extractHref("ts-tj-c", recommend, moreList);
+                extractHref("img-xbtj", recommend, moreList);
             } // for
 
             return null;
@@ -202,6 +232,27 @@ public class RecommendHunter {
         for (String more : moreList) {
             // 新推荐加入检索队列
             PostUtil.offerQueueOrWait(queue, more);
+        }
+
+    }
+
+    /**
+     * 提取爱套图中两种类型的推荐。
+     * 
+     * @param searchClass
+     * @param recommend
+     * @param list
+     */
+    private void extractHref(String searchClass, final Element recommend, final List<String> list) {
+        Elements ctjs = recommend.getElementsByClass(searchClass);
+        if (ctjs != null && ctjs.size() > 0) {
+            Element ctj = ctjs.get(0);
+            Elements links = ctj.getElementsByTag("a");
+
+            for (Element link : links) {
+                String pageSuffix = link.attr("href");
+                list.add(PostUtil.getDomainName() + pageSuffix);
+            }
         }
     }
 

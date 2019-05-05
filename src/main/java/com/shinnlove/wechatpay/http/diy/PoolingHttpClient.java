@@ -160,7 +160,7 @@ public class PoolingHttpClient {
             // 增加主机地址
             //            .host(DefaultHeaders.HOST)
             // 请求来源
-            //            .referer(DefaultHeaders.REFERER)
+            .referer(DefaultHeaders.REFERER)
             // 用户代理
             .userAgent(DefaultHeaders.USER_AGENT).build();
 
