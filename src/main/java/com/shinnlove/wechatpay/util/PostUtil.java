@@ -35,7 +35,7 @@ public class PostUtil {
     private static final String SAVE_PATH                = "./miko/";
 
     /** 默认域名 */
-    private static final String DOMAIN_NAME              = "https://ts2dh.com";
+    private static final String DOMAIN_NAME              = "https://qqi668.com";
 
     /** 秀人主页目录 */
     private static final String XIUREN_CATALOG_PREFIX    = DOMAIN_NAME + "/xiurenwang/list_14_";
@@ -384,7 +384,7 @@ public class PostUtil {
      *
      * 存储为：xiurenwang/2018_0303_4769，其中xiurenwang是秀人文件夹、后边是整体的帖子信息
      *
-     * @param url      
+     * @param url
      * @param postName
      * @param pageNo
      * @return
